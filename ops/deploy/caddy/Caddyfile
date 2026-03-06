@@ -1,0 +1,46 @@
+# Caddy reverse proxy for Acquisition Engine
+#
+# Replace example.com with your domain.
+# Caddy handles HTTPS automatically (Let's Encrypt) when:
+# - DNS A/AAAA records point to this server
+# - ports 80 and 443 are reachable
+#
+# Endpoints:
+# - Console: /console/*  -> http://console:8000
+# - Public:  /api/*      -> http://public:8001
+# - Health:  /healthz    -> public /health
+
+example.com {
+
+  encode zstd gzip
+
+  # Security headers (baseline)
+  header {
+    -Server
+    X-Content-Type-Options "nosniff"
+    X-Frame-Options "DENY"
+    Referrer-Policy "strict-origin-when-cross-origin"
+    Permissions-Policy "geolocation=(), microphone=(), camera=()"
+  }
+
+  # Optional: protect console with basic auth at the edge.
+  # basicauth /console/* {
+  #   admin JDJhJDE0JHNhbHQuLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4u  # use: caddy hash-password
+  # }
+
+  handle_path /console/* {
+    reverse_proxy console:8000
+  }
+
+  handle_path /api/* {
+    reverse_proxy public:8001
+  }
+
+  handle /healthz {
+    reverse_proxy public:8001
+  }
+
+  # Optional static landing (if you add one later)
+  # root * /srv
+  # file_server
+}

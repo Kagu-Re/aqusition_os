@@ -1,0 +1,97 @@
+<div class="space-y-8">
+  <div>
+    <h2 class="text-2xl font-bold mb-4" style="color: #ffd700;">Alerts</h2>
+    <p class="text-sm mb-6" style="color: #8888a0;">Monitor campaign performance and alerts</p>
+  </div>
+
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-2 mb-4">
+    <!-- Thresholds -->
+    <div class="card">
+      <div class="text-xs mb-3" style="color: #8888a0; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">thresholds</div>
+      <div class="grid grid-cols-2 gap-2 mb-3 text-xs">
+        <label class="flex flex-col gap-1" style="color: #8888a0;">
+          <span>min_roas</span>
+          <input id="thr_min_roas" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+                 style="border-color: #2a2a3e; color: #e0e0e8;" value="1.5" />
+        </label>
+        <label class="flex flex-col gap-1" style="color: #8888a0;">
+          <span>max_cpl</span>
+          <input id="thr_max_cpl" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+                 style="border-color: #2a2a3e; color: #e0e0e8;" value="300" />
+        </label>
+        <label class="flex flex-col gap-1" style="color: #8888a0;">
+          <span>min_booking_rate</span>
+          <input id="thr_min_br" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+                 style="border-color: #2a2a3e; color: #e0e0e8;" value="0.05" />
+        </label>
+        <label class="flex flex-col gap-1" style="color: #8888a0;">
+          <span>max_spend_no_revenue</span>
+          <input id="thr_max_snr" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+                 style="border-color: #2a2a3e; color: #e0e0e8;" value="1000" />
+        </label>
+      </div>
+      <div class="flex flex-wrap items-center gap-2 mb-3">
+        <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="loadThresholds()">load</button>
+        <button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="saveThresholds()">save</button>
+        <span id="thr_hint" class="text-xs" style="color: #555566;"></span>
+      </div>
+      <p class="text-xs" style="color: #555566;">These are guardrails, not gospel. Start conservative, tighten after 2–4 weeks of data.</p>
+    </div>
+
+    <!-- Evaluation -->
+    <div class="card">
+      <div class="text-xs mb-3" style="color: #8888a0; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">evaluation</div>
+      <div class="flex flex-wrap items-center gap-2 mb-3 text-xs" style="color: #8888a0;">
+        <span>day_from</span>
+        <input id="alert_from" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+               style="border-color: #2a2a3e; color: #e0e0e8; width: 120px;" placeholder="YYYY-MM-DD" />
+        <span>day_to</span>
+        <input id="alert_to" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+               style="border-color: #2a2a3e; color: #e0e0e8; width: 120px;" placeholder="YYYY-MM-DD" />
+        <label class="flex items-center gap-2 text-xs" style="color: #8888a0;"><input id="notify_eval" type="checkbox" />notify</label>
+        <button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="evaluateAlerts()">evaluate now</button>
+        <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="loadAlerts()">refresh</button>
+        <span id="alert_eval_hint" class="text-xs" style="color: #555566;"></span>
+      </div>
+      <div id="alerts_table" class="scrollable-container rounded-lg border p-6 text-xs"
+           style="background: #151520; border-color: #2a2a3e; color: #e0e0e8; min-height: 300px;">
+        <div class="empty-state">
+          <div class="spinner" style="margin: 0 auto;"></div>
+          <div class="empty-state-title mt-4">Loading alerts...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <details class="rounded-lg border p-3" style="background: #151520; border-color: #2a2a3e;">
+    <summary class="cursor-pointer text-xs" style="color: #e0e0e8;">raw json</summary>
+    <div id="alerts_raw" class="mt-3 scrollable-container text-xs font-mono" style="color: #e0e0e8;">
+      <div class="empty-state">
+        <div class="empty-state-icon">📊</div>
+        <div class="empty-state-title">No alert data</div>
+      </div>
+    </div>
+  </details>
+</div>
+
+<script>
+// Load alerts when page loads
+(async function() {
+  await new Promise(resolve => setTimeout(resolve, 100));
+  if (typeof loadAlerts === 'function') {
+    await loadAlerts();
+  } else {
+    console.error('loadAlerts function not found');
+    const alertsEl = document.getElementById('alerts_table');
+    if (alertsEl) {
+      alertsEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error</div><div class="empty-state-description">loadAlerts function not available</div></div>';
+    }
+  }
+  
+  if (typeof loadThresholds === 'function') {
+    await loadThresholds();
+  } else {
+    console.error('loadThresholds function not found');
+  }
+})();
+</script>

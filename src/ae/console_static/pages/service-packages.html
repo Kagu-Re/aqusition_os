@@ -1,0 +1,880 @@
+<div class="space-y-8">
+  <div>
+    <h2 class="text-2xl font-bold mb-4" style="color: #00f0ff;">Service Packages</h2>
+    <p class="text-sm mb-6" style="color: #8888a0;">Manage service packages for fixed-price clients</p>
+  </div>
+
+  <!-- Create New Service Package -->
+  <div class="card mb-6">
+    <h3 class="text-lg font-bold mb-4" style="color: #00f0ff;">Create New Service Package</h3>
+    <form id="create-package-form" class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs mb-2" style="color: #8888a0;">Package ID *</label>
+          <input id="package_id" type="text" required class="w-full px-4 py-2.5 text-sm rounded-lg border bg-transparent font-mono"
+                 style="border-color: #2a2a3e; color: #e0e0e8;" placeholder="pkg-client-id-001"/>
+        </div>
+        <div>
+          <label class="block text-xs mb-2" style="color: #8888a0;">Client ID *</label>
+          <input id="client_id" type="text" required class="w-full px-4 py-2.5 text-sm rounded-lg border bg-transparent font-mono"
+                 style="border-color: #2a2a3e; color: #e0e0e8;" placeholder="client-id"/>
+        </div>
+        <div>
+          <label class="block text-xs mb-2" style="color: #8888a0;">Package Name *</label>
+          <input id="name" type="text" required class="w-full px-4 py-2.5 text-sm rounded-lg border bg-transparent"
+                 style="border-color: #2a2a3e; color: #e0e0e8;" placeholder="60-Minute Workshop"/>
+        </div>
+        <div>
+          <label class="block text-xs mb-2" style="color: #8888a0;">Price *</label>
+          <input id="price" type="number" step="0.01" min="0" required class="w-full px-4 py-2.5 text-sm rounded-lg border bg-transparent font-mono"
+                 style="border-color: #2a2a3e; color: #e0e0e8;" placeholder="1500.00"/>
+        </div>
+        <div>
+          <label class="block text-xs mb-2" style="color: #8888a0;">Duration (minutes) *</label>
+          <input id="duration_min" type="number" min="1" required class="w-full px-4 py-2.5 text-sm rounded-lg border bg-transparent font-mono"
+                 style="border-color: #2a2a3e; color: #e0e0e8;" placeholder="60"/>
+        </div>
+        <div>
+          <label class="block text-xs mb-2" style="color: #8888a0;">Active</label>
+          <select id="active" class="w-full px-4 py-2.5 text-sm rounded-lg border bg-transparent"
+                  style="border-color: #2a2a3e; color: #e0e0e8;">
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-xs mb-2" style="color: #8888a0;">Add-ons (comma-separated)</label>
+          <input id="addons" type="text" class="w-full px-4 py-2.5 text-sm rounded-lg border bg-transparent"
+                 style="border-color: #2a2a3e; color: #e0e0e8;" placeholder="Certificate, Materials, Support"/>
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-xs mb-2" style="color: #8888a0;">Meta JSON (optional, JSON format)</label>
+          <textarea id="meta_json" rows="3" class="w-full px-4 py-2.5 text-sm rounded-lg border bg-transparent font-mono"
+                    style="border-color: #2a2a3e; color: #e0e0e8;" placeholder='{"service_focus": "premium", "max_capacity": 15}'></textarea>
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <button type="submit" class="btn btn-primary">Create Package</button>
+        <button type="button" class="btn btn-secondary" onclick="resetPackageForm()">Reset</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Filters -->
+  <div class="card mb-6">
+    <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+      <div class="flex gap-3 flex-wrap">
+        <input id="filter_client_id" class="px-4 py-2.5 text-sm rounded-lg border bg-transparent font-mono"
+               style="border-color: #2a2a3e; color: #e0e0e8; width: 140px;" placeholder="client_id"/>
+        <select id="filter_active" class="px-4 py-2.5 text-sm rounded-lg border bg-transparent"
+                style="border-color: #2a2a3e; color: #e0e0e8;">
+          <option value="">active:any</option>
+          <option value="true">active</option>
+          <option value="false">inactive</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="loadServicePackages()">Load Packages</button>
+    </div>
+  </div>
+
+  <!-- Bulk Actions Toolbar -->
+  <div id="bulk-actions-toolbar" class="card mb-6 hidden" style="border-color: #2a2a3e;">
+    <div class="flex items-center justify-between flex-wrap gap-3">
+      <div class="flex items-center gap-3">
+        <span id="selected-count" class="text-sm font-semibold" style="color: #00f0ff;">0 selected</span>
+        <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="selectAllPackages()">Select All</button>
+        <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="deselectAllPackages()">Select None</button>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="showBulkUpdateModal()">Bulk Update</button>
+        <button class="btn btn-danger" style="padding: 6px 12px; font-size: 12px;" onclick="showBulkDeleteModal()">Bulk Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bulk Update Modal -->
+  <div id="bulk-update-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background: rgba(0, 0, 0, 0.75);">
+    <div class="card max-w-md w-full mx-4" style="border-color: #2a2a3e; max-height: 90vh; overflow-y: auto;">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold" style="color: #00f0ff;">Bulk Update Packages</h3>
+        <button onclick="closeBulkUpdateModal()" class="text-2xl" style="color: #8888a0;">&times;</button>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs mb-2" style="color: #8888a0;">Selected Packages</label>
+          <div id="bulk-update-selected-list" class="text-xs font-mono p-3 rounded-lg border" style="background: #0a0a0f; border-color: #2a2a3e; color: #8888a0; max-height: 100px; overflow-y: auto;"></div>
+        </div>
+        <div>
+          <label class="block text-xs mb-2" style="color: #8888a0;">
+            <input type="checkbox" id="bulk-update-active-check" class="mr-2" onchange="toggleBulkUpdateActive()">
+            Update Active Status
+          </label>
+          <select id="bulk-update-active" class="w-full px-4 py-2.5 text-sm rounded-lg border bg-transparent hidden"
+                  style="border-color: #2a2a3e; color: #e0e0e8;">
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs mb-2" style="color: #8888a0;">
+            <input type="checkbox" id="bulk-update-price-check" class="mr-2" onchange="toggleBulkUpdatePrice()">
+            Update Price
+          </label>
+          <input id="bulk-update-price" type="number" step="0.01" min="0" class="w-full px-4 py-2.5 text-sm rounded-lg border bg-transparent font-mono hidden"
+                 style="border-color: #2a2a3e; color: #e0e0e8;" placeholder="0.00"/>
+        </div>
+        <div>
+          <label class="block text-xs mb-2" style="color: #8888a0;">Mode</label>
+          <select id="bulk-update-mode" class="w-full px-4 py-2.5 text-sm rounded-lg border bg-transparent"
+                  style="border-color: #2a2a3e; color: #e0e0e8;">
+            <option value="dry_run">Dry Run (Preview Only)</option>
+            <option value="execute">Execute</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs mb-2" style="color: #8888a0;">Notes (optional)</label>
+          <textarea id="bulk-update-notes" rows="2" class="w-full px-4 py-2.5 text-sm rounded-lg border bg-transparent"
+                    style="border-color: #2a2a3e; color: #e0e0e8;" placeholder="Operation notes..."></textarea>
+        </div>
+        <div class="flex gap-3">
+          <button class="btn btn-primary flex-1" onclick="executeBulkUpdate()">Run Bulk Update</button>
+          <button class="btn btn-secondary" onclick="closeBulkUpdateModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bulk Delete Modal -->
+  <div id="bulk-delete-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background: rgba(0, 0, 0, 0.75);">
+    <div class="card max-w-md w-full mx-4" style="border-color: #2a2a3e;">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold" style="color: #ff0040;">Bulk Delete Packages</h3>
+        <button onclick="closeBulkDeleteModal()" class="text-2xl" style="color: #8888a0;">&times;</button>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <p class="text-sm mb-3" style="color: #e0e0e8;">Are you sure you want to delete <span id="bulk-delete-count" class="font-bold" style="color: #ff0040;">0</span> package(s)?</p>
+          <p class="text-xs mb-3" style="color: #8888a0;">This action cannot be undone.</p>
+          <div id="bulk-delete-selected-list" class="text-xs font-mono p-3 rounded-lg border" style="background: #0a0a0f; border-color: #2a2a3e; color: #8888a0; max-height: 150px; overflow-y: auto;"></div>
+        </div>
+        <div>
+          <label class="block text-xs mb-2" style="color: #8888a0;">Mode</label>
+          <select id="bulk-delete-mode" class="w-full px-4 py-2.5 text-sm rounded-lg border bg-transparent"
+                  style="border-color: #2a2a3e; color: #e0e0e8;">
+            <option value="dry_run">Dry Run (Preview Only)</option>
+            <option value="execute">Execute</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs mb-2" style="color: #8888a0;">Notes (optional)</label>
+          <textarea id="bulk-delete-notes" rows="2" class="w-full px-4 py-2.5 text-sm rounded-lg border bg-transparent"
+                    style="border-color: #2a2a3e; color: #e0e0e8;" placeholder="Deletion notes..."></textarea>
+        </div>
+        <div class="flex gap-3">
+          <button class="btn btn-danger flex-1" onclick="executeBulkDelete()">Delete Packages</button>
+          <button class="btn btn-secondary" onclick="closeBulkDeleteModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bulk Operation Results -->
+  <div id="bulk-results" class="card mb-6 hidden" style="border-color: #2a2a3e;">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-bold" style="color: #00f0ff;">Bulk Operation Results</h3>
+      <button onclick="closeBulkResults()" class="text-sm" style="color: #8888a0;">Close</button>
+    </div>
+    <div id="bulk-results-content" class="space-y-3"></div>
+  </div>
+
+  <!-- Service Packages List -->
+  <div id="packages-list" class="scrollable-container rounded-lg p-6 border"
+       style="background: #151520; border-color: #2a2a3e; color: #e0e0e8; min-height: 400px;">
+    <div class="empty-state">
+      <div class="spinner" style="margin: 0 auto;"></div>
+      <div class="empty-state-title mt-4">Loading service packages...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+async function loadServicePackages() {
+  const listEl = document.getElementById('packages-list');
+  if (!listEl) return;
+  
+  listEl.innerHTML = '<div class="empty-state"><div class="spinner" style="margin: 0 auto;"></div><div class="empty-state-title mt-4">Loading...</div></div>';
+  
+  try {
+    const db = q("db") || "acq.db";
+    const params = new URLSearchParams({db});
+    
+    const clientId = document.getElementById('filter_client_id')?.value;
+    const active = document.getElementById('filter_active')?.value;
+    
+    if (clientId) params.append('client_id', clientId);
+    if (active) params.append('active', active === 'true');
+    
+    const response = await api(`/api/service-packages?${params.toString()}`);
+    const packages = response.items || [];
+    
+    if (packages.length === 0) {
+      listEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon" style="font-size: 64px; opacity: 0.6;">📦</div><div class="empty-state-title" style="font-size: 18px; margin-bottom: 12px;">No service packages found</div><div class="empty-state-description" style="font-size: 14px;">Create a new service package using the form above</div></div>';
+      return;
+    }
+    
+    listEl.innerHTML = '';
+    for (const pkg of packages) {
+      const card = document.createElement('div');
+      card.className = 'card mb-3';
+      card.style.cssText = 'padding: 16px; border-color: #2a2a3e;';
+      card.dataset.packageId = pkg.package_id;
+      
+      const activeColor = pkg.active ? '#00ff88' : '#8888a0';
+      const addons = (pkg.addons || []).join(', ') || 'None';
+      
+      card.innerHTML = `
+        <div class="flex items-start gap-3">
+          <input type="checkbox" class="package-checkbox mt-1" data-package-id="${escapeHtml(pkg.package_id)}" 
+                 onchange="updateBulkActionsToolbar()" 
+                 style="width: 18px; height: 18px; cursor: pointer; accent-color: #00f0ff;">
+          <div class="flex-1">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+              <div class="flex-1">
+                <div class="font-mono text-sm font-bold mb-1" style="color: #00f0ff;">${escapeHtml(pkg.package_id)}</div>
+                <div class="text-lg font-semibold mb-1" style="color: #e0e0e8;">${escapeHtml(pkg.name)}</div>
+                <div class="text-xs mb-1" style="color: #8888a0;">Client: ${escapeHtml(pkg.client_id)} · Duration: ${pkg.duration_min} min</div>
+                <div class="text-xs" style="color: #8888a0;">Add-ons: ${escapeHtml(addons)}</div>
+              </div>
+              <div class="flex flex-col items-end gap-2">
+                <div class="text-2xl font-bold" style="color: #00ff88;">${formatPrice(pkg.price)}</div>
+                <span class="px-3 py-1 rounded-full text-xs font-bold" style="background: rgba(0, 255, 136, 0.1); color: ${activeColor}; border: 1px solid ${activeColor};">
+                  ${pkg.active ? 'Active' : 'Inactive'}
+                </span>
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="editPackage('${escapeHtml(pkg.package_id)}')">✏️ Edit</button>
+              <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="togglePackageActive('${escapeHtml(pkg.package_id)}', ${!pkg.active})">
+                ${pkg.active ? '⏸️ Deactivate' : '▶️ Activate'}
+              </button>
+              <button class="btn btn-danger" style="padding: 6px 12px; font-size: 12px;" onclick="deletePackage('${escapeHtml(pkg.package_id)}')">🗑️ Delete</button>
+            </div>
+          </div>
+        </div>
+      `;
+      listEl.appendChild(card);
+    }
+    
+    // Show bulk actions toolbar if packages exist
+    if (packages.length > 0) {
+      document.getElementById('bulk-actions-toolbar')?.classList.remove('hidden');
+    } else {
+      document.getElementById('bulk-actions-toolbar')?.classList.add('hidden');
+    }
+    updateBulkActionsToolbar();
+    
+    if (typeof toast !== 'undefined') {
+      toast.success(`Loaded ${packages.length} service package(s)`);
+    }
+  } catch (e) {
+    console.error('[loadServicePackages] Error:', e);
+    listEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error loading service packages</div><div class="empty-state-description">${escapeHtml(e.message)}</div></div>`;
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error("Error loading service packages: " + e.message);
+    }
+  }
+}
+
+async function togglePackageActive(packageId, active) {
+  try {
+    const db = q("db") || "acq.db";
+    const params = new URLSearchParams({db});
+    
+    const response = await api(`/api/service-packages/${packageId}?${params.toString()}`, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({active})
+    });
+    
+    if (typeof toast !== 'undefined') {
+      toast.success(`Package ${packageId} ${active ? 'activated' : 'deactivated'}`);
+    }
+    await loadServicePackages();
+  } catch (e) {
+    console.error('[togglePackageActive] Error:', e);
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error("Error updating package: " + e.message);
+    }
+  }
+}
+
+async function deletePackage(packageId) {
+  if (!confirm(`Delete package ${packageId}? This action cannot be undone.`)) return;
+  
+  try {
+    const db = q("db") || "acq.db";
+    const params = new URLSearchParams({db});
+    
+    await api(`/api/service-packages/${packageId}?${params.toString()}`, {
+      method: 'DELETE'
+    });
+    
+    if (typeof toast !== 'undefined') {
+      toast.success(`Package ${packageId} deleted`);
+    }
+    await loadServicePackages();
+  } catch (e) {
+    console.error('[deletePackage] Error:', e);
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error("Error deleting package: " + e.message);
+    }
+  }
+}
+
+function editPackage(packageId) {
+  // Load package details and populate form
+  const db = q("db") || "acq.db";
+  const params = new URLSearchParams({db});
+  
+  api(`/api/service-packages/${packageId}?${params.toString()}`)
+    .then(response => {
+      const pkg = response.package;
+      document.getElementById('package_id').value = pkg.package_id;
+      document.getElementById('client_id').value = pkg.client_id;
+      document.getElementById('name').value = pkg.name;
+      document.getElementById('price').value = pkg.price;
+      document.getElementById('duration_min').value = pkg.duration_min;
+      document.getElementById('active').value = pkg.active.toString();
+      document.getElementById('addons').value = (pkg.addons || []).join(', ');
+      document.getElementById('meta_json').value = JSON.stringify(pkg.meta_json || {}, null, 2);
+      
+      // Change form to update mode
+      const form = document.getElementById('create-package-form');
+      const submitBtn = form.querySelector('button[type="submit"]');
+      submitBtn.textContent = 'Update Package';
+      submitBtn.onclick = (e) => {
+        e.preventDefault();
+        updatePackage(packageId);
+      };
+      
+      // Scroll to form
+      form.scrollIntoView({behavior: 'smooth'});
+    })
+    .catch(e => {
+      console.error('[editPackage] Error:', e);
+      if (typeof toast !== 'undefined' && toast.error) {
+        toast.error("Error loading package: " + e.message);
+      }
+    });
+}
+
+async function updatePackage(packageId) {
+  const name = document.getElementById('name').value.trim();
+  const price = parseFloat(document.getElementById('price').value);
+  const durationMin = parseInt(document.getElementById('duration_min').value);
+  const active = document.getElementById('active').value === 'true';
+  const addonsStr = document.getElementById('addons').value.trim();
+  const metaJsonStr = document.getElementById('meta_json').value.trim();
+  
+  const addons = addonsStr ? addonsStr.split(',').map(s => s.trim()).filter(s => s) : [];
+  let metaJson = {};
+  if (metaJsonStr) {
+    try {
+      metaJson = JSON.parse(metaJsonStr);
+    } catch (e) {
+      if (typeof toast !== 'undefined' && toast.error) {
+        toast.error("Invalid JSON in meta_json field");
+      }
+      return;
+    }
+  }
+  
+  try {
+    const db = q("db") || "acq.db";
+    const params = new URLSearchParams({db});
+    
+    const response = await api(`/api/service-packages/${packageId}?${params.toString()}`, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        name,
+        price,
+        duration_min: durationMin,
+        active,
+        addons,
+        meta_json: metaJson
+      })
+    });
+    
+    if (typeof toast !== 'undefined') {
+      toast.success(`Package ${packageId} updated successfully`);
+    }
+    resetPackageForm();
+    await loadServicePackages();
+  } catch (e) {
+    console.error('[updatePackage] Error:', e);
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error("Error updating package: " + e.message);
+    }
+  }
+}
+
+document.getElementById('create-package-form')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const packageId = document.getElementById('package_id').value.trim();
+  const clientId = document.getElementById('client_id').value.trim();
+  const name = document.getElementById('name').value.trim();
+  const price = parseFloat(document.getElementById('price').value);
+  const durationMin = parseInt(document.getElementById('duration_min').value);
+  const active = document.getElementById('active').value === 'true';
+  const addonsStr = document.getElementById('addons').value.trim();
+  const metaJsonStr = document.getElementById('meta_json').value.trim();
+  
+  if (!packageId || !clientId || !name || isNaN(price) || isNaN(durationMin)) {
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error('Please fill in all required fields');
+    }
+    return;
+  }
+  
+  const addons = addonsStr ? addonsStr.split(',').map(s => s.trim()).filter(s => s) : [];
+  let metaJson = {};
+  if (metaJsonStr) {
+    try {
+      metaJson = JSON.parse(metaJsonStr);
+    } catch (e) {
+      if (typeof toast !== 'undefined' && toast.error) {
+        toast.error("Invalid JSON in meta_json field");
+      }
+      return;
+    }
+  }
+  
+  try {
+    const db = q("db") || "acq.db";
+    const params = new URLSearchParams({db});
+    
+    const payload = {
+      package_id: packageId,
+      client_id: clientId,
+      name,
+      price,
+      duration_min: durationMin,
+      addons,
+      active,
+      meta_json: metaJson
+    };
+    
+    const response = await api(`/api/service-packages?${params.toString()}`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    
+    if (typeof toast !== 'undefined') {
+      toast.success(`Service package ${packageId} created successfully`);
+    }
+    resetPackageForm();
+    await loadServicePackages();
+  } catch (e) {
+    console.error('[createPackage] Error:', e);
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error("Error creating service package: " + e.message);
+    }
+  }
+});
+
+function resetPackageForm() {
+  document.getElementById('create-package-form')?.reset();
+  document.getElementById('active').value = 'true';
+  const submitBtn = document.getElementById('create-package-form')?.querySelector('button[type="submit"]');
+  if (submitBtn) {
+    submitBtn.textContent = 'Create Package';
+    submitBtn.onclick = null;
+  }
+}
+
+function formatPrice(price) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(price);
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Load packages when page loads
+// Wait for DOM to be ready and ensure function is available
+(function() {
+  function tryLoad() {
+    const listEl = document.getElementById('packages-list');
+    if (typeof loadServicePackages === 'function' && listEl) {
+      console.log('[service-packages] Auto-loading packages...');
+      loadServicePackages().catch(e => {
+        console.error('[service-packages] Auto-load error:', e);
+      });
+    } else {
+      // Retry after a short delay if not ready (max 10 attempts = 1 second)
+      if (typeof tryLoad.attempts === 'undefined') {
+        tryLoad.attempts = 0;
+      }
+      tryLoad.attempts++;
+      if (tryLoad.attempts < 10) {
+        setTimeout(tryLoad, 100);
+      } else {
+        console.warn('[service-packages] Failed to auto-load after 10 attempts');
+      }
+    }
+  }
+  // Start trying after DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', tryLoad);
+  } else {
+    setTimeout(tryLoad, 100);
+  }
+})();
+
+// Bulk operations
+let selectedPackages = new Set();
+
+function updateBulkActionsToolbar() {
+  const checkboxes = document.querySelectorAll('.package-checkbox:checked');
+  selectedPackages = new Set(Array.from(checkboxes).map(cb => cb.dataset.packageId));
+  const count = selectedPackages.size;
+  const toolbar = document.getElementById('bulk-actions-toolbar');
+  const countEl = document.getElementById('selected-count');
+  
+  if (countEl) {
+    countEl.textContent = `${count} selected`;
+  }
+  
+  if (toolbar && count > 0) {
+    toolbar.classList.remove('hidden');
+  } else if (toolbar && count === 0) {
+    // Keep toolbar visible but show 0 selected
+  }
+}
+
+function selectAllPackages() {
+  document.querySelectorAll('.package-checkbox').forEach(cb => {
+    cb.checked = true;
+  });
+  updateBulkActionsToolbar();
+}
+
+function deselectAllPackages() {
+  document.querySelectorAll('.package-checkbox').forEach(cb => {
+    cb.checked = false;
+  });
+  updateBulkActionsToolbar();
+}
+
+function showBulkUpdateModal() {
+  const selected = Array.from(selectedPackages);
+  if (selected.length === 0) {
+    if (typeof toast !== 'undefined') {
+      toast.error('Please select at least one package');
+    }
+    return;
+  }
+  
+  const modal = document.getElementById('bulk-update-modal');
+  const listEl = document.getElementById('bulk-update-selected-list');
+  if (listEl) {
+    listEl.textContent = selected.join(', ');
+  }
+  if (modal) {
+    modal.classList.remove('hidden');
+  }
+  
+  // Reset form
+  document.getElementById('bulk-update-active-check').checked = false;
+  document.getElementById('bulk-update-price-check').checked = false;
+  document.getElementById('bulk-update-active').classList.add('hidden');
+  document.getElementById('bulk-update-price').classList.add('hidden');
+  document.getElementById('bulk-update-mode').value = 'dry_run';
+  document.getElementById('bulk-update-notes').value = '';
+}
+
+function closeBulkUpdateModal() {
+  document.getElementById('bulk-update-modal')?.classList.add('hidden');
+}
+
+function toggleBulkUpdateActive() {
+  const check = document.getElementById('bulk-update-active-check');
+  const select = document.getElementById('bulk-update-active');
+  if (check.checked) {
+    select.classList.remove('hidden');
+  } else {
+    select.classList.add('hidden');
+  }
+}
+
+function toggleBulkUpdatePrice() {
+  const check = document.getElementById('bulk-update-price-check');
+  const input = document.getElementById('bulk-update-price');
+  if (check.checked) {
+    input.classList.remove('hidden');
+  } else {
+    input.classList.add('hidden');
+  }
+}
+
+async function executeBulkUpdate() {
+  const selected = Array.from(selectedPackages);
+  if (selected.length === 0) {
+    if (typeof toast !== 'undefined') {
+      toast.error('Please select at least one package');
+    }
+    return;
+  }
+  
+  const updates = {};
+  const activeCheck = document.getElementById('bulk-update-active-check');
+  const priceCheck = document.getElementById('bulk-update-price-check');
+  
+  if (activeCheck.checked) {
+    updates.active = document.getElementById('bulk-update-active').value === 'true';
+  }
+  if (priceCheck.checked) {
+    const price = parseFloat(document.getElementById('bulk-update-price').value);
+    if (isNaN(price) || price < 0) {
+      if (typeof toast !== 'undefined') {
+        toast.error('Please enter a valid price');
+      }
+      return;
+    }
+    updates.price = price;
+  }
+  
+  if (Object.keys(updates).length === 0) {
+    if (typeof toast !== 'undefined') {
+      toast.error('Please select at least one field to update');
+    }
+    return;
+  }
+  
+  const mode = document.getElementById('bulk-update-mode').value;
+  const notes = document.getElementById('bulk-update-notes').value.trim();
+  
+  try {
+    const db = q("db") || "acq.db";
+    const params = new URLSearchParams({db});
+    
+    const payload = {
+      package_ids: selected,
+      mode: mode,
+      updates: updates,
+      notes: notes || undefined
+    };
+    
+    if (typeof toast !== 'undefined') {
+      toast.info(`Running bulk update (${mode})...`);
+    }
+    
+    const response = await api(`/api/service-packages/bulk-update?${params.toString()}`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    
+    closeBulkUpdateModal();
+    showBulkResults(response, 'update');
+    
+    if (mode === 'execute') {
+      await loadServicePackages();
+    }
+    
+    if (typeof toast !== 'undefined') {
+      const counters = response.result?.counters || {};
+      toast.success(`Bulk update ${mode}: ${counters.updated || 0} updated, ${counters.skipped || 0} skipped, ${counters.failed || 0} failed`);
+    }
+  } catch (e) {
+    console.error('[executeBulkUpdate] Error:', e);
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error("Error executing bulk update: " + e.message);
+    }
+  }
+}
+
+function showBulkDeleteModal() {
+  const selected = Array.from(selectedPackages);
+  if (selected.length === 0) {
+    if (typeof toast !== 'undefined') {
+      toast.error('Please select at least one package');
+    }
+    return;
+  }
+  
+  const modal = document.getElementById('bulk-delete-modal');
+  const countEl = document.getElementById('bulk-delete-count');
+  const listEl = document.getElementById('bulk-delete-selected-list');
+  
+  if (countEl) {
+    countEl.textContent = selected.length;
+  }
+  if (listEl) {
+    listEl.textContent = selected.join('\n');
+  }
+  if (modal) {
+    modal.classList.remove('hidden');
+  }
+  
+  document.getElementById('bulk-delete-mode').value = 'dry_run';
+  document.getElementById('bulk-delete-notes').value = '';
+}
+
+function closeBulkDeleteModal() {
+  document.getElementById('bulk-delete-modal')?.classList.add('hidden');
+}
+
+async function executeBulkDelete() {
+  const selected = Array.from(selectedPackages);
+  if (selected.length === 0) {
+    if (typeof toast !== 'undefined') {
+      toast.error('Please select at least one package');
+    }
+    return;
+  }
+  
+  const mode = document.getElementById('bulk-delete-mode').value;
+  const notes = document.getElementById('bulk-delete-notes').value.trim();
+  
+  if (mode === 'execute' && !confirm(`Are you sure you want to delete ${selected.length} package(s)? This action cannot be undone.`)) {
+    return;
+  }
+  
+  try {
+    const db = q("db") || "acq.db";
+    const params = new URLSearchParams({db});
+    
+    const payload = {
+      package_ids: selected,
+      mode: mode,
+      notes: notes || undefined
+    };
+    
+    if (typeof toast !== 'undefined') {
+      toast.info(`Running bulk delete (${mode})...`);
+    }
+    
+    const response = await api(`/api/service-packages/bulk-delete?${params.toString()}`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    
+    closeBulkDeleteModal();
+    showBulkResults(response, 'delete');
+    
+    if (mode === 'execute') {
+      await loadServicePackages();
+      deselectAllPackages();
+    }
+    
+    if (typeof toast !== 'undefined') {
+      const counters = response.result?.counters || {};
+      toast.success(`Bulk delete ${mode}: ${counters.deleted || 0} deleted, ${counters.failed || 0} failed`);
+    }
+  } catch (e) {
+    console.error('[executeBulkDelete] Error:', e);
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error("Error executing bulk delete: " + e.message);
+    }
+  }
+}
+
+function showBulkResults(response, type) {
+  const resultsEl = document.getElementById('bulk-results');
+  const contentEl = document.getElementById('bulk-results-content');
+  
+  if (!resultsEl || !contentEl) return;
+  
+  const counters = response.result?.counters || {};
+  const items = response.result?.packages || [];
+  
+  let html = `
+    <div class="mb-4">
+      <div class="text-sm mb-2" style="color: #8888a0;">Bulk ID: <span class="font-mono" style="color: #00f0ff;">${response.bulk_id}</span></div>
+      <div class="text-sm mb-2" style="color: #8888a0;">Status: <span style="color: #00ff88;">${response.status}</span></div>
+      <div class="text-sm mb-2" style="color: #8888a0;">Mode: <span style="color: #ffd700;">${response.mode}</span></div>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+      <div class="p-3 rounded-lg border" style="background: #0a0a0f; border-color: #2a2a3e;">
+        <div class="text-xs mb-1" style="color: #8888a0;">Total</div>
+        <div class="text-lg font-bold" style="color: #00f0ff;">${counters.total || 0}</div>
+      </div>
+  `;
+  
+  if (type === 'update') {
+    html += `
+      <div class="p-3 rounded-lg border" style="background: #0a0a0f; border-color: #2a2a3e;">
+        <div class="text-xs mb-1" style="color: #8888a0;">Updated</div>
+        <div class="text-lg font-bold" style="color: #00ff88;">${counters.updated || 0}</div>
+      </div>
+      <div class="p-3 rounded-lg border" style="background: #0a0a0f; border-color: #2a2a3e;">
+        <div class="text-xs mb-1" style="color: #8888a0;">Skipped</div>
+        <div class="text-lg font-bold" style="color: #ffd700;">${counters.skipped || 0}</div>
+      </div>
+    `;
+  } else {
+    html += `
+      <div class="p-3 rounded-lg border" style="background: #0a0a0f; border-color: #2a2a3e;">
+        <div class="text-xs mb-1" style="color: #8888a0;">Deleted</div>
+        <div class="text-lg font-bold" style="color: #00ff88;">${counters.deleted || 0}</div>
+      </div>
+      <div class="p-3 rounded-lg border" style="background: #0a0a0f; border-color: #2a2a3e;">
+        <div class="text-xs mb-1" style="color: #8888a0;">Skipped</div>
+        <div class="text-lg font-bold" style="color: #ffd700;">${counters.skipped || 0}</div>
+      </div>
+    `;
+  }
+  
+  html += `
+      <div class="p-3 rounded-lg border" style="background: #0a0a0f; border-color: #2a2a3e;">
+        <div class="text-xs mb-1" style="color: #8888a0;">Failed</div>
+        <div class="text-lg font-bold" style="color: #ff0040;">${counters.failed || 0}</div>
+      </div>
+    </div>
+  `;
+  
+  if (items.length > 0 && items.length <= 20) {
+    html += '<div class="text-xs font-mono p-3 rounded-lg border max-h-64 overflow-y-auto" style="background: #0a0a0f; border-color: #2a2a3e; color: #8888a0;"><pre>' + escapeHtml(JSON.stringify(items, null, 2)) + '</pre></div>';
+  } else if (items.length > 20) {
+    html += `<div class="text-xs p-3 rounded-lg border" style="background: #0a0a0f; border-color: #2a2a3e; color: #8888a0;">Showing first 20 of ${items.length} results. Check console for full details.</div>`;
+  }
+  
+  contentEl.innerHTML = html;
+  resultsEl.classList.remove('hidden');
+  resultsEl.scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+
+function closeBulkResults() {
+  document.getElementById('bulk-results')?.classList.add('hidden');
+}
+
+window.loadServicePackages = loadServicePackages;
+window.togglePackageActive = togglePackageActive;
+window.deletePackage = deletePackage;
+window.editPackage = editPackage;
+window.selectAllPackages = selectAllPackages;
+window.deselectAllPackages = deselectAllPackages;
+window.updateBulkActionsToolbar = updateBulkActionsToolbar;
+window.showBulkUpdateModal = showBulkUpdateModal;
+window.closeBulkUpdateModal = closeBulkUpdateModal;
+window.toggleBulkUpdateActive = toggleBulkUpdateActive;
+window.toggleBulkUpdatePrice = toggleBulkUpdatePrice;
+window.executeBulkUpdate = executeBulkUpdate;
+window.showBulkDeleteModal = showBulkDeleteModal;
+window.closeBulkDeleteModal = closeBulkDeleteModal;
+window.executeBulkDelete = executeBulkDelete;
+window.showBulkResults = showBulkResults;
+window.closeBulkResults = closeBulkResults;
+</script>

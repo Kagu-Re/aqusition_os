@@ -1,0 +1,146 @@
+<div class="space-y-8">
+  <div>
+    <h2 class="text-2xl font-bold mb-4" style="color: #00f0ff;">Dashboard</h2>
+    <p class="text-sm mb-6" style="color: #8888a0;">Overview of key metrics and recent activity</p>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+    <div id="dashboard-summary-leads" class="card">
+      <div class="text-xs mb-2" style="color: #8888a0; text-transform: uppercase; letter-spacing: 0.05em;">Total Leads</div>
+      <div class="text-2xl font-bold" style="color: #00f0ff;" id="dashboard-leads-value">—</div>
+    </div>
+    <div id="dashboard-summary-revenue" class="card">
+      <div class="text-xs mb-2" style="color: #8888a0; text-transform: uppercase; letter-spacing: 0.05em;">Total Revenue</div>
+      <div class="text-2xl font-bold" style="color: #00ff88;" id="dashboard-revenue-value">—</div>
+    </div>
+    <div id="dashboard-summary-roas" class="card">
+      <div class="text-xs mb-2" style="color: #8888a0; text-transform: uppercase; letter-spacing: 0.05em;">ROAS</div>
+      <div class="text-2xl font-bold" style="color: #00f0ff;" id="dashboard-roas-value">—</div>
+    </div>
+    <div id="dashboard-summary-campaigns" class="card">
+      <div class="text-xs mb-2" style="color: #8888a0; text-transform: uppercase; letter-spacing: 0.05em;">Active Campaigns</div>
+      <div class="text-2xl font-bold" style="color: #00f0ff;" id="dashboard-campaigns-value">—</div>
+    </div>
+  </div>
+
+  <!-- KPIs Section -->
+  <div class="card mb-8">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-bold" style="color: #00ff88;">KPIs</h3>
+      <div class="flex flex-wrap items-center gap-2 text-xs" style="color: #8888a0;">
+        <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="setKpiPreset('today')">today</button>
+        <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="setKpiPreset('7d')">last 7d</button>
+        <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="setKpiPreset('30d')">last 30d</button>
+        <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="setKpiPreset('all')">all</button>
+        <span class="ml-2">day_from</span>
+        <input id="kpi_from" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+               style="border-color: #2a2a3e; color: #e0e0e8; width: 120px;" placeholder="YYYY-MM-DD" />
+        <span>day_to</span>
+        <input id="kpi_to" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+               style="border-color: #2a2a3e; color: #e0e0e8; width: 120px;" placeholder="YYYY-MM-DD" />
+        <button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="loadKpis()">refresh</button>
+      </div>
+    </div>
+    <div id="kpi_cards" class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5 mb-4"></div>
+    <div class="grid grid-cols-1 gap-3 md:grid-cols-2 mb-4">
+      <div class="card">
+        <div class="text-xs mb-2" style="color: #8888a0;">revenue vs spend (daily)</div>
+        <div id="kpi_chart" class="mt-2"></div>
+      </div>
+      <div class="card">
+        <div class="text-xs mb-2" style="color: #8888a0;">leads vs bookings (daily)</div>
+        <div id="kpi_chart2" class="mt-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="card">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-bold" style="color: #00f0ff;">Recent Activity</h3>
+      <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="loadActivity()">Refresh</button>
+    </div>
+    <div id="activity" class="scrollable-container rounded-lg p-6 border"
+         style="background: #151520; border-color: #2a2a3e; color: #e0e0e8; min-height: 300px;">
+      <div class="empty-state">
+        <div class="spinner" style="margin: 0 auto;"></div>
+        <div class="empty-state-title mt-4">Loading activity...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Load dashboard data when page loads
+(async function() {
+  // Wait a bit to ensure all functions are available
+  await new Promise(resolve => setTimeout(resolve, 100));
+  
+  // Load KPIs
+  try {
+    if (typeof loadKpis === 'function') {
+      await loadKpis();
+    } else {
+      console.error('loadKpis function not found');
+    }
+  } catch (e) {
+    console.error('Error loading KPIs:', e);
+  }
+  
+  // Load activity
+  try {
+    if (typeof loadActivity === 'function') {
+      await loadActivity();
+    } else {
+      console.error('loadActivity function not found');
+    }
+  } catch (e) {
+    console.error('Error loading activity:', e);
+  }
+  
+  // Load summary metrics
+  try {
+    if (typeof q === 'function' && typeof api === 'function') {
+      const db = q("db") || "acq.db";
+      
+      // Load leads count
+      try {
+        const leadsData = await api(`/api/leads?db=${db}&limit=1`);
+        const leadsCount = leadsData.total || leadsData.items?.length || 0;
+        const el = document.getElementById('dashboard-leads-value');
+        if (el) el.textContent = leadsCount.toLocaleString();
+      } catch (e) {
+        console.error('Error loading leads count:', e);
+      }
+      
+      // Load revenue and ROAS
+      try {
+        const roasData = await api(`/api/stats/roas?db=${db}`);
+        const total = roasData.total || {revenue: 0, spend: 0};
+        const roas = total.spend > 0 ? (total.revenue / total.spend).toFixed(2) : "N/A";
+        const revEl = document.getElementById('dashboard-revenue-value');
+        const roasEl = document.getElementById('dashboard-roas-value');
+        if (revEl) revEl.textContent = total.revenue.toFixed(0);
+        if (roasEl) roasEl.textContent = roas;
+      } catch (e) {
+        console.error('Error loading revenue/ROAS:', e);
+      }
+      
+      // Load campaigns count
+      try {
+        const campaignsData = await api(`/api/stats/campaigns?db=${db}`);
+        const campaignsCount = campaignsData.campaigns?.length || 0;
+        const el = document.getElementById('dashboard-campaigns-value');
+        if (el) el.textContent = campaignsCount;
+      } catch (e) {
+        console.error('Error loading campaigns count:', e);
+      }
+    } else {
+      console.error('q or api functions not available');
+    }
+  } catch (e) {
+    console.error('Error loading summary metrics:', e);
+  }
+})();
+</script>

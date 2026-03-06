@@ -1,0 +1,37 @@
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+env/
+ENV/
+*.egg-info/
+
+# local data / exports
+data/
+exports/
+generated/
+*.db
+*.sqlite
+*.sqlite3
+
+# runtime / debug
+*.log
+debug_api.log
+demo_output.txt
+
+# release artifacts (keep in ops/ or CI)
+# acq_engine_v*.zip
+
+# secrets
+.env
+.env.*
+*.pem
+*.key
+
+# node
+node_modules/
+dist/
+build/

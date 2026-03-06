@@ -1,0 +1,12 @@
+{
+  "name": "acq-engine",
+  "private": true,
+  "devDependencies": {
+    "tailwindcss": "^3.4.13",
+    "postcss": "^8.4.47",
+    "autoprefixer": "^10.4.20"
+  },
+  "scripts": {
+    "build:css": "tailwindcss -c tailwind.config.js -i src/ae/assets/tailwind_input.css -o src/ae/assets/tailwind_compiled.css --minify"
+  }
+}

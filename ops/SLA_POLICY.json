@@ -1,0 +1,5 @@
+{
+  "open_sla_days": 14,
+  "doing_sla_days": 7,
+  "block_on_breach": false
+}

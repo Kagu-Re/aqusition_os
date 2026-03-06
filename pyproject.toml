@@ -1,0 +1,15 @@
+[project]
+name = "acq-engine"
+version = "7.8.0"
+description = "Acquisition Engine v1 control plane (local)"
+requires-python = ">=3.10"
+dependencies = ["pydantic>=2.0", "typer>=0.9", "fastapi>=0.110", "uvicorn>=0.24", "httpx>=0.26", "redis>=5.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "tenant: multi-tenant integration and security tests (Batch 4, session auth, API key)",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]

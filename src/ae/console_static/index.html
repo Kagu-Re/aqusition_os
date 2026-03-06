@@ -1,0 +1,3747 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Acq Engine — Operator Console</title>
+  <link rel="stylesheet" href="/console_static/tailwind.css"/>
+  <link rel="stylesheet" href="/console_static/styles.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    /* Akira Theme Overrides */
+    body {
+      background: #0a0a0f;
+      color: #e0e0e8;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    .akira-bg { background: #0a0a0f; }
+    .akira-surface { background: #151520; }
+    .akira-surface-elevated { background: #1e1e2e; }
+    .akira-border { border-color: #2a2a3e; }
+    .akira-cyan { color: #00f0ff; }
+    .akira-pink { color: #ff00ff; }
+    .akira-yellow { color: #ffd700; }
+    .akira-green { color: #00ff88; }
+    .akira-red { color: #ff0040; }
+    .akira-purple { color: #a855f7; }
+    
+    /* Scrollable container styling */
+    .scrollable-container {
+      overflow-y: auto;
+      overflow-x: hidden;
+      min-height: 200px;
+      max-height: calc(100vh - 300px);
+    }
+    
+    /* Scrollbar styling for webkit browsers */
+    .scrollable-container::-webkit-scrollbar {
+      width: 8px;
+    }
+    .scrollable-container::-webkit-scrollbar-track {
+      background: #151520;
+      border-radius: 4px;
+    }
+    .scrollable-container::-webkit-scrollbar-thumb {
+      background: #2a2a3e;
+      border-radius: 4px;
+    }
+    .scrollable-container::-webkit-scrollbar-thumb:hover {
+      background: #3a3a4e;
+    }
+    
+    /* Scrollbar styling for Firefox */
+    .scrollable-container {
+      scrollbar-width: thin;
+      scrollbar-color: #2a2a3e #151520;
+    }
+    
+    /* Collapsible content height constraints */
+    .collapsible-content {
+      min-height: 200px;
+      max-height: calc(100vh - 300px);
+    }
+    
+    /* Sidebar navigation */
+    .nav-item:hover {
+      background: #151520;
+      color: #00f0ff;
+    }
+    .nav-item.active {
+      background: #1e1e2e;
+      color: #00f0ff;
+      border-left: 3px solid #00f0ff;
+    }
+    
+    /* Responsive: hide sidebar on mobile */
+    @media (max-width: 1024px) {
+      #sidebar {
+        display: block;
+      }
+      .ml-64, .md\:ml-64 {
+        margin-left: 0;
+      }
+      #mobile-menu-toggle {
+        display: block !important;
+      }
+    }
+    
+    @media (min-width: 1025px) {
+      #mobile-menu-toggle {
+        display: none !important;
+      }
+      #sidebar {
+        transform: translateX(0) !important;
+      }
+    }
+    
+    /* Accessible color palette for table rows */
+    .table-row-even {
+      background: #151520;
+      border-bottom-color: #3a3a4e;
+    }
+    .table-row-odd {
+      background: #1a1a25;
+      border-bottom-color: #3a3a4e;
+    }
+    .table-row-even:hover,
+    .table-row-odd:hover {
+      background: #1e1e2e;
+      border-bottom-color: #4a4a5e;
+    }
+    
+    /* Better text contrast for accessibility */
+    .table-text-primary {
+      color: #e8e8f0; /* Higher contrast than #e0e0e8 */
+    }
+    .table-text-secondary {
+      color: #b0b0c0; /* Better contrast than #8888a0 */
+    }
+    .table-text-accent {
+      color: #00f0ff;
+    }
+    
+    /* Improved spacing and indentation */
+    .card {
+      padding: 1.5rem; /* 24px - better spacing */
+      margin-bottom: 1.5rem;
+    }
+    .space-y-8 > * + * {
+      margin-top: 2rem; /* 32px - better vertical rhythm */
+    }
+    
+    /* Better form spacing */
+    input, select, textarea {
+      padding: 0.625rem 1rem; /* 10px 16px - consistent padding */
+      margin-bottom: 0.75rem; /* 12px - consistent spacing */
+    }
+    
+    /* Improved button spacing */
+    .btn {
+      padding: 0.5rem 1rem; /* 8px 16px */
+      margin: 0.25rem; /* 4px - consistent gaps */
+    }
+    
+    /* Hide main interface until authenticated */
+    body:not(.authenticated) #main-content,
+    body:not(.authenticated) #sidebar,
+    body:not(.authenticated) header {
+      display: none !important;
+    }
+    
+    /* Show login overlay when not authenticated */
+    body:not(.authenticated) #login-overlay {
+      display: flex !important;
+    }
+    
+    #login-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #0a0a0f;
+      align-items: center;
+      justify-content: center;
+    }
+    
+  </style>
+</head>
+<body class="min-h-screen akira-bg">
+  <!-- Login Overlay - shown when not authenticated -->
+  <div id="login-overlay" class="fixed inset-0 z-9999 flex items-center justify-center" style="background: #0a0a0f; display: none;">
+    <div class="card max-w-md w-full mx-4" style="background: #151520; border-color: #2a2a3e;">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold" style="color: #00f0ff;">Login Required</h2>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <label for="overlay_login_user" class="block text-sm mb-2" style="color: #b0b0c0;">Username</label>
+          <input id="overlay_login_user" type="text" autocomplete="username"
+                 class="w-full px-4 py-2.5 text-sm rounded-lg border bg-transparent" 
+                 style="border-color: #2a2a3e; color: #e8e8f0;" placeholder="username"/>
+        </div>
+        <div>
+          <label for="overlay_login_pass" class="block text-sm mb-2" style="color: #b0b0c0;">Password</label>
+          <input id="overlay_login_pass" type="password" autocomplete="current-password"
+                 class="w-full px-4 py-2.5 text-sm rounded-lg border bg-transparent"
+                 style="border-color: #2a2a3e; color: #e8e8f0;" placeholder="password"/>
+        </div>
+        <div id="overlay_auth_msg" class="hidden rounded-lg p-2 text-xs border" style="background: #1a1a2a; border-color: #2a2a3e; color: #ff0040;"></div>
+        <div class="flex gap-3">
+          <button onclick="overlayLogin()" class="btn btn-success flex-1">Login</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Skip Link for Accessibility -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
+  <!-- Mobile Menu Toggle -->
+  <button id="mobile-menu-toggle" class="fixed top-4 left-4 z-20 hidden md:hidden p-2 rounded-lg border" 
+          style="background: #151520; border-color: #2a2a3e; color: #00f0ff;"
+          aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="sidebar">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M3 12h18M3 6h18M3 18h18"/>
+    </svg>
+  </button>
+  
+  <!-- Sidebar Navigation -->
+  <aside id="sidebar" class="fixed left-0 top-0 h-full w-64 border-r z-10 md:translate-x-0 -translate-x-full transition-transform duration-300" 
+         style="background: #0a0a0f; border-color: #2a2a3e; overflow-y: auto;" 
+         role="navigation" aria-label="Main navigation">
+    <div class="p-6">
+      <div class="mb-8">
+        <div class="text-sm font-semibold" style="color: #00f0ff;">Navigation</div>
+        <div class="text-xs mt-1" style="color: #555566;">Acq Engine</div>
+      </div>
+      <!-- User Info -->
+      <div class="mb-6 pb-4 border-b" style="border-color: #2a2a3e;">
+        <div class="text-xs mb-1" style="color: #8888a0;">Logged in as</div>
+        <div id="sidebar-whoami" class="text-sm font-semibold" style="color: #00f0ff;">…</div>
+      </div>
+      <nav class="space-y-1">
+        <a href="#leads-section" onclick="navigateToSection('leads-section'); return false;" class="nav-item block px-4 py-2 rounded-lg text-sm transition-colors" style="color: #8888a0; hover:background: #151520;">
+          👥 Leads
+        </a>
+        <a href="/money-board" class="nav-item block px-4 py-2 rounded-lg text-sm transition-colors" style="color: #8888a0; hover:background: #151520;">
+          💰 Money Board
+        </a>
+        <a href="#events-section" onclick="navigateToSection('events-section'); return false;" class="nav-item block px-4 py-2 rounded-lg text-sm transition-colors" style="color: #8888a0; hover:background: #151520;">
+          📊 Events
+        </a>
+        <a href="#revenue-section" onclick="navigateToSection('revenue-section'); return false;" class="nav-item block px-4 py-2 rounded-lg text-sm transition-colors" style="color: #8888a0; hover:background: #151520;">
+          💰 Revenue & ROAS
+        </a>
+        <a href="#campaigns-section" onclick="navigateToSection('campaigns-section'); return false;" class="nav-item block px-4 py-2 rounded-lg text-sm transition-colors" style="color: #8888a0; hover:background: #151520;">
+          🎯 Campaigns
+        </a>
+        <a href="#kpis-section" onclick="navigateToSection('kpis-section'); return false;" class="nav-item block px-4 py-2 rounded-lg text-sm transition-colors" style="color: #8888a0; hover:background: #151520;">
+          📊 KPIs
+        </a>
+        <a href="#activity-section" onclick="navigateToSection('activity-section'); return false;" class="nav-item block px-4 py-2 rounded-lg text-sm transition-colors" style="color: #8888a0; hover:background: #151520;">
+          📋 Activity
+        </a>
+        <a href="#spend-section" onclick="navigateToSection('spend-section'); return false;" class="nav-item block px-4 py-2 rounded-lg text-sm transition-colors" style="color: #8888a0; hover:background: #151520;">
+          💸 Spend
+        </a>
+        <a href="#alerts-section" onclick="navigateToSection('alerts-section'); return false;" class="nav-item block px-4 py-2 rounded-lg text-sm transition-colors" style="color: #8888a0; hover:background: #151520;">
+          ⚠️ Alerts
+        </a>
+        <div class="border-t my-2" style="border-color: #2a2a3e;"></div>
+        <a href="#/landing-pages" onclick="if(window.router){window.router.navigate('/landing-pages');}else{setTimeout(()=>window.location.hash='#/landing-pages',100);}return false;" class="nav-item block px-4 py-2 rounded-lg text-sm transition-colors" style="color: #8888a0; hover:background: #151520;">
+          📄 Landing Pages
+        </a>
+        <a href="#/service-packages" onclick="if(window.router){window.router.navigate('/service-packages');}else{setTimeout(()=>window.location.hash='#/service-packages',100);}return false;" class="nav-item block px-4 py-2 rounded-lg text-sm transition-colors" style="color: #8888a0; hover:background: #151520;">
+          📦 Service Packages
+        </a>
+        <a href="#/bot-setup" onclick="if(window.router){window.router.navigate('/bot-setup');}else{setTimeout(()=>window.location.hash='#/bot-setup',100);}return false;" class="nav-item block px-4 py-2 rounded-lg text-sm transition-colors" style="color: #8888a0; hover:background: #151520;">
+          🤖 Bot Setup
+        </a>
+        <a href="#/reporting" onclick="if(window.router){window.router.navigate('/reporting');}else{setTimeout(()=>window.location.hash='#/reporting',100);}return false;" class="nav-item block px-4 py-2 rounded-lg text-sm transition-colors" style="color: #8888a0; hover:background: #151520;">
+          📈 Reporting
+        </a>
+      </nav>
+    </div>
+  </aside>
+  
+  <!-- Main Content -->
+  <div class="ml-0 md:ml-64" id="main-content" role="main">
+    <div class="mx-auto max-w-7xl px-6 py-8 md:px-16 md:py-12 lg:px-20">
+      <header class="flex items-center justify-between gap-6 mb-8 pb-6 border-b flex-wrap" style="border-color: #2a2a3e;">
+        <div class="flex-1">
+          <h1 class="text-2xl md:text-3xl font-bold neon-text" style="color: #00f0ff; margin: 0;">Operator Console</h1>
+          <p class="text-xs mt-1" style="color: #8888a0;">Acquisition Engine Management Interface</p>
+        </div>
+        <div class="flex items-center gap-4 flex-wrap">
+          <!-- Search Bar -->
+          <div class="relative">
+            <input type="text" id="global-search" placeholder="Search leads, events, pages..." 
+                   class="px-4 py-2 pl-10 rounded-lg border bg-transparent text-sm"
+                   style="border-color: #2a2a3e; color: #e8e8f0; width: 280px;"
+                   onkeyup="handleGlobalSearch(event)" />
+            <svg class="absolute left-3 top-2.5" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="color: #8888a0;">
+              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+            </svg>
+          </div>
+        </div>
+      </header>
+    
+    <!-- Old login modal removed - using login overlay instead -->
+
+    <!-- Search Results Modal -->
+    <div id="search-results" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background: rgba(10, 10, 15, 0.9);">
+      <div class="bg-neutral-900 rounded-lg border p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto" style="background: #151520; border-color: #2a2a3e;">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-bold" style="color: #00f0ff;">Search Results</h2>
+          <button onclick="closeSearchResults()" class="text-2xl" style="color: #8888a0;">&times;</button>
+        </div>
+        <div id="search-results-content"></div>
+      </div>
+    </div>
+
+    <!-- Status, Auth, and DB cards hidden - using login modal and sidebar user info instead -->
+    <div id="status-auth-db-section" style="display: none;">
+      <!-- Hidden elements for backward compatibility -->
+      <div id="health" style="display: none;"><span id="health-indicator"></span><span id="health-text">…</span></div>
+      <div id="whoami" style="display: none;">…</div>
+      <input id="db" style="display: none;" value="acq.db"/>
+      <input id="login_user" style="display: none;"/>
+      <input id="login_pass" style="display: none;"/>
+      <input id="secret" style="display: none;"/>
+      <pre id="auth_msg" style="display: none;"></pre>
+    </div>
+
+    <!-- Page Container for Router-based Pages -->
+    <div id="page-container" class="space-y-8"></div>
+
+    <!-- Accordion Sections -->
+    <section class="card mb-8 collapsible-section">
+      <div class="collapsible-header" onclick="toggleCollapse(this)">
+        <div class="card-title" style="color: #00f0ff;">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" style="color: #00f0ff;">
+            <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2h-1.528A6 6 0 014 9.528V4z"/>
+            <path d="M6 10a4 4 0 108 0v1h-1a1 1 0 01-1-1v-1a4 4 0 00-8 0v1a1 1 0 01-1 1H4v-1z"/>
+          </svg>
+          Pages
+        </div>
+        <svg class="collapsible-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="color: #8888a0;">
+          <path d="M6 4l4 4-4 4"/>
+        </svg>
+      </div>
+      <div class="collapsible-content expanded">
+        <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+          <div class="flex gap-3 flex-wrap">
+            <input id="client_id" class="px-4 py-2.5 text-sm rounded-lg border bg-transparent font-mono"
+                   style="border-color: #2a2a3e; color: #e0e0e8; width: 140px;" placeholder="client_id"/>
+            <input id="template_id" class="px-4 py-2.5 text-sm rounded-lg border bg-transparent font-mono"
+                   style="border-color: #2a2a3e; color: #e0e0e8; width: 140px;" placeholder="template_id"/>
+            <input id="geo_city" class="px-4 py-2.5 text-sm rounded-lg border bg-transparent"
+                   style="border-color: #2a2a3e; color: #e0e0e8; width: 140px;" placeholder="geo_city"/>
+            <select id="page_status" class="px-4 py-2.5 text-sm rounded-lg border bg-transparent"
+                    style="border-color: #2a2a3e; color: #e0e0e8;">
+              <option value="">status:any</option>
+              <option value="draft">draft</option>
+              <option value="live">live</option>
+              <option value="paused">paused</option>
+            </select>
+          </div>
+        </div>
+        <div id="pages" class="scrollable-container rounded-lg p-6 border font-mono text-xs"
+             style="background: #151520; border-color: #2a2a3e; color: #e0e0e8;">
+          <div class="empty-state">
+            <div class="empty-state-icon" style="font-size: 64px; opacity: 0.6;">📄</div>
+            <div class="empty-state-title" style="font-size: 18px; margin-bottom: 12px;">No pages loaded</div>
+            <div class="empty-state-description" style="font-size: 14px; margin-bottom: 20px;">Expand this section to automatically load pages</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bulk Op Result Section -->
+    <section class="card mb-8 collapsible-section">
+      <div class="collapsible-header" onclick="toggleCollapse(this)">
+        <div class="card-title" style="color: #00f0ff;">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+            <path d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5z"/>
+          </svg>
+          Bulk Operation Result
+        </div>
+        <svg class="collapsible-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="color: #8888a0;">
+          <path d="M6 4l4 4-4 4"/>
+        </svg>
+      </div>
+      <div class="collapsible-content">
+        <pre id="bulk" class="scrollable-container rounded-lg p-6 border font-mono text-xs"
+             style="background: #151520; border-color: #2a2a3e; color: #e0e0e8;">
+          <div class="empty-state">
+            <div class="empty-state-icon" style="font-size: 64px; opacity: 0.6;">⚙️</div>
+            <div class="empty-state-title" style="font-size: 18px; margin-bottom: 12px;">No bulk operation run</div>
+            <div class="empty-state-description" style="font-size: 14px;">Run a bulk validate or publish operation from Quick Actions</div>
+          </div>
+        </pre>
+      </div>
+    </section>
+
+    <!-- Activity Section -->
+    <section id="activity-section" class="card mb-8 collapsible-section">
+      <div class="collapsible-header" onclick="toggleCollapse(this)">
+        <div class="card-title" style="color: #00f0ff;">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/>
+          </svg>
+          Activity (Log Horizon stream)
+        </div>
+        <svg class="collapsible-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="color: #8888a0;">
+          <path d="M6 4l4 4-4 4"/>
+        </svg>
+      </div>
+      <div class="collapsible-content">
+        <div id="activity" class="scrollable-container rounded-lg p-6 border"
+             style="background: #151520; border-color: #2a2a3e; color: #e0e0e8;">
+          <div class="empty-state">
+            <div class="empty-state-icon" style="font-size: 64px; opacity: 0.6;">📋</div>
+            <div class="empty-state-title" style="font-size: 18px; margin-bottom: 12px;">No activity loaded</div>
+            <div class="empty-state-description" style="font-size: 14px; margin-bottom: 20px;">Expand this section to automatically load activity</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Events Section -->
+    <section id="events-section" class="card mb-8 collapsible-section">
+      <div class="collapsible-header" onclick="toggleCollapse(this)">
+        <div class="card-title" style="color: #00ff88;">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+            <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+          </svg>
+          Event Tracking
+        </div>
+        <svg class="collapsible-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="color: #8888a0;">
+          <path d="M6 4l4 4-4 4"/>
+        </svg>
+      </div>
+      <div class="collapsible-content">
+        <div class="mb-4 flex gap-2 flex-wrap">
+          <input type="text" id="events_page_id" placeholder="Filter by page_id (optional)" class="rounded-lg border px-3 py-2 text-sm" style="border-color: #2a2a3e; background: #151520; color: #e0e0e8; flex: 1; min-width: 150px;">
+          <select id="events_event_name" class="rounded-lg border px-3 py-2 text-sm" style="border-color: #2a2a3e; background: #151520; color: #e0e0e8;">
+            <option value="">All event types</option>
+            <option value="call_click">call_click</option>
+            <option value="quote_submit">quote_submit</option>
+            <option value="thank_you_view">thank_you_view</option>
+          </select>
+          <button class="btn btn-primary" onclick="loadEvents()">Load Events</button>
+        </div>
+        <div id="events" class="scrollable-container rounded-lg p-6 border"
+             style="background: #151520; border-color: #2a2a3e; color: #e0e0e8;">
+          <div class="empty-state">
+            <div class="empty-state-icon" style="font-size: 64px; opacity: 0.6;">📊</div>
+            <div class="empty-state-title" style="font-size: 18px; margin-bottom: 12px;">No events loaded</div>
+            <div class="empty-state-description" style="font-size: 14px; margin-bottom: 20px;">Expand this section to automatically load events</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Leads Section -->
+    <section id="leads-section" class="card mb-8 collapsible-section">
+      <div class="collapsible-header" onclick="toggleCollapse(this)">
+        <div class="card-title" style="color: #00f0ff;">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+          </svg>
+          Leads
+        </div>
+        <svg class="collapsible-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="color: #8888a0;">
+          <path d="M6 4l4 4-4 4"/>
+        </svg>
+      </div>
+      <div class="collapsible-content">
+        <div id="leads" class="space-y-3 scrollable-container rounded-lg p-6 border"
+             style="background: #151520; border-color: #2a2a3e;">
+          <div class="empty-state">
+            <div class="empty-state-icon" style="font-size: 64px; opacity: 0.6;">👥</div>
+            <div class="empty-state-title" style="font-size: 18px; margin-bottom: 12px;">No leads loaded</div>
+            <div class="empty-state-description" style="font-size: 14px; margin-bottom: 20px;">Expand this section to automatically load leads</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Money Board Section - Moved to standalone page -->
+    <!-- Money Board is now available at /money-board -->
+    <!-- For client-specific view, use /client/money-board?client_id=... -->
+
+    <!-- Revenue Section -->
+    <section id="revenue-section" class="card mb-8 collapsible-section">
+      <div class="collapsible-header" onclick="toggleCollapse(this)">
+        <div class="card-title" style="color: #00ff88;">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
+            <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z"/>
+          </svg>
+          Revenue (booked/paid)
+        </div>
+        <svg class="collapsible-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="color: #8888a0;">
+          <path d="M6 4l4 4-4 4"/>
+        </svg>
+      </div>
+      <div class="collapsible-content">
+        <div id="revenue" class="scrollable-container rounded-lg p-6 border"
+             style="background: #151520; border-color: #2a2a3e; color: #e0e0e8;">
+          <div class="empty-state">
+            <div class="empty-state-icon" style="font-size: 64px; opacity: 0.6;">💰</div>
+            <div class="empty-state-title" style="font-size: 18px; margin-bottom: 12px;">No revenue data loaded</div>
+            <div class="empty-state-description" style="font-size: 14px; margin-bottom: 20px;">Expand this section to automatically load revenue data</div>
+          </div>
+        </div>
+        <p class="mt-3 text-xs" style="color: #8888a0;">
+          To set booking outcomes: call <span class="font-mono" style="color: #00f0ff;">POST /api/leads/&lt;id&gt;/outcome?db=...</span> with secret header.
+        </p>
+      </div>
+    </section>
+
+    
+    <!-- Ad Spend Import Section -->
+    <section class="card mb-8 collapsible-section">
+      <div class="collapsible-header" onclick="toggleCollapse(this)">
+        <div class="card-title" style="color: #00f0ff;">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+            <path d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 100-2 1 1 0 000 2zm0-4a1 1 0 100-2 1 1 0 000 2z"/>
+          </svg>
+          Ad Spend Import
+        </div>
+        <svg class="collapsible-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="color: #8888a0;">
+          <path d="M6 4l4 4-4 4"/>
+        </svg>
+      </div>
+      <div class="collapsible-content">
+        <p class="mb-3 text-sm" style="color: #8888a0;">Paste JSON array of items. Example:</p>
+        <pre class="mb-4 rounded-lg p-3 text-xs border overflow-auto font-mono"
+             style="background: #151520; border-color: #2a2a3e; color: #8888a0; max-height: 140px;">[
+  {"day":"2026-02-01","source":"meta","utm_campaign":"cmp1","spend_value":1200,"spend_currency":"THB","client_id":"c1"},
+  {"day":"2026-02-01","source":"google","utm_campaign":"cmp1","spend_value":800,"spend_currency":"THB","client_id":"c1"}
+]</pre>
+        <textarea id="spend_json" class="w-full rounded-lg border p-3 text-xs outline-none font-mono" rows="6"
+                  style="background: #151520; border-color: #2a2a3e; color: #e0e0e8;"
+                  placeholder='[{"day":"YYYY-MM-DD","source":"meta|google","spend_value":123}]'></textarea>
+        <div class="mt-3 flex flex-wrap gap-2 items-center">
+          <button class="btn btn-primary" onclick="importSpend()">📥 Import spend</button>
+          <span id="spend_result" class="text-xs" style="color: #8888a0;"></span>
+        </div>
+      </div>
+    </section>
+
+    
+    <!-- Spend Table Section -->
+    <section id="spend-section" class="card mb-8 collapsible-section">
+      <div class="collapsible-header" onclick="toggleCollapse(this)">
+        <div class="card-title" style="color: #00f0ff;">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+            <path d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 100-2 1 1 0 000 2zm0-4a1 1 0 100-2 1 1 0 000 2z"/>
+          </svg>
+          Spend (daily)
+        </div>
+        <svg class="collapsible-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="color: #8888a0;">
+          <path d="M6 4l4 4-4 4"/>
+        </svg>
+      </div>
+      <div class="collapsible-content">
+        <div id="spend_table" class="space-y-2 scrollable-container rounded-lg p-6 border"
+             style="background: #151520; border-color: #2a2a3e;">
+          <div class="empty-state">
+            <div class="empty-state-icon" style="font-size: 64px; opacity: 0.6;">💸</div>
+            <div class="empty-state-title" style="font-size: 18px; margin-bottom: 12px;">No spend data</div>
+            <div class="empty-state-description" style="font-size: 14px; margin-bottom: 20px;">Import spend data using the <strong style="color: #00f0ff;">"Ad Spend Import"</strong> section above, or expand this section to load existing spend data</div>
+          </div>
+        </div>
+        <p class="mt-3 text-xs" style="color: #8888a0;">Import uses upsert key: (day, source, utm_campaign, client_id, currency). Re-import overwrites value.</p>
+      </div>
+    </section>
+
+    <!-- ROAS Section -->
+    <section id="roas-section" class="card mb-8 collapsible-section">
+      <div class="collapsible-header" onclick="toggleCollapse(this)">
+        <div class="card-title" style="color: #00ff88;">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+          </svg>
+          ROAS
+        </div>
+        <svg class="collapsible-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="color: #8888a0;">
+          <path d="M6 4l4 4-4 4"/>
+        </svg>
+      </div>
+      <div class="collapsible-content">
+        <div id="roas" class="scrollable-container rounded-lg p-6 border"
+             style="background: #151520; border-color: #2a2a3e; color: #e0e0e8;">
+          <div class="empty-state">
+            <div class="empty-state-icon" style="font-size: 64px; opacity: 0.6;">📊</div>
+            <div class="empty-state-title" style="font-size: 18px; margin-bottom: 12px;">No ROAS data loaded</div>
+            <div class="empty-state-description" style="font-size: 14px; margin-bottom: 20px;">Expand this section to automatically load ROAS data</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- KPIs Section -->
+    <section id="kpis-section" class="card mb-6 collapsible-section">
+      <div class="collapsible-header" onclick="toggleCollapse(this)">
+        <div class="card-title" style="color: #00ff88;">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+          </svg>
+          KPIs
+        </div>
+        <svg class="collapsible-icon expanded" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="color: #8888a0;">
+          <path d="M6 4l4 4-4 4"/>
+        </svg>
+      </div>
+      <div class="collapsible-content expanded">
+        <div class="flex flex-wrap items-center gap-2 mb-4 text-xs" style="color: #8888a0;">
+          <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="setKpiPreset('today')">today</button>
+          <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="setKpiPreset('7d')">last 7d</button>
+          <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="setKpiPreset('30d')">last 30d</button>
+          <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="setKpiPreset('all')">all</button>
+
+          <span class="ml-2">day_from</span>
+          <input id="kpi_from" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+                 style="border-color: #2a2a3e; color: #e0e0e8; width: 120px;" placeholder="YYYY-MM-DD" />
+          <span>day_to</span>
+          <input id="kpi_to" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+                 style="border-color: #2a2a3e; color: #e0e0e8; width: 120px;" placeholder="YYYY-MM-DD" />
+          <button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="loadKpis()">refresh</button>
+          <span id="kpi_hint" class="ml-2 text-xs" style="color: #555566;"></span>
+        </div>
+
+        <div id="kpi_cards" class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5 mb-4"></div>
+
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-2 mb-4">
+          <div class="card">
+            <div class="text-xs mb-2" style="color: #8888a0;">revenue vs spend (daily)</div>
+            <div id="kpi_chart" class="mt-2"></div>
+          </div>
+          <div class="card">
+            <div class="text-xs mb-2" style="color: #8888a0;">leads vs bookings (daily)</div>
+            <div id="kpi_chart2" class="mt-2"></div>
+          </div>
+        </div>
+
+        <details class="rounded-lg border p-3" style="background: #151520; border-color: #2a2a3e;">
+          <summary class="cursor-pointer text-xs" style="color: #e0e0e8;">raw json</summary>
+          <div id="kpis" class="mt-3 scrollable-container" style="color: #e0e0e8;">
+            <div class="empty-state">
+              <div class="empty-state-icon">📊</div>
+              <div class="empty-state-title">No KPI data</div>
+              <div class="empty-state-description">Click "refresh" to load KPIs</div>
+            </div>
+          </pre>
+        </details>
+
+        <p class="mt-3 text-xs" style="color: #8888a0;">KPIs computed from: leads (non-spam), bookings (booked/paid), revenue (sum booking_value), spend (imported daily). Assumes single currency.</p>
+      </div>
+    </section>
+
+    <!-- Campaign Intelligence Section -->
+    <section id="campaigns-section" class="card mb-8 collapsible-section">
+      <div class="collapsible-header" onclick="toggleCollapse(this)">
+        <div class="card-title" style="color: #ff00ff;">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+          </svg>
+          Campaign Intelligence
+        </div>
+        <svg class="collapsible-icon expanded" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="color: #8888a0;">
+          <path d="M6 4l4 4-4 4"/>
+        </svg>
+      </div>
+      <div class="collapsible-content expanded">
+        <div class="flex flex-wrap items-center gap-2 mb-4 text-xs" style="color: #8888a0;">
+          <span>min_spend</span>
+          <input id="camp_min_spend" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+                 style="border-color: #2a2a3e; color: #e0e0e8; width: 90px;" value="0" />
+          <span>sort</span>
+          <select id="camp_sort" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none"
+                  style="border-color: #2a2a3e; color: #e0e0e8;">
+            <option value="roas">roas</option>
+            <option value="revenue">revenue</option>
+            <option value="spend">spend</option>
+            <option value="bookings">bookings</option>
+            <option value="leads">leads</option>
+            <option value="cpl">cpl</option>
+            <option value="cpb">cpb</option>
+          </select>
+          <span class="ml-2">day_from</span>
+          <input id="camp_from" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+                 style="border-color: #2a2a3e; color: #e0e0e8; width: 120px;" placeholder="YYYY-MM-DD" />
+          <span>day_to</span>
+          <input id="camp_to" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+                 style="border-color: #2a2a3e; color: #e0e0e8; width: 120px;" placeholder="YYYY-MM-DD" />
+          <button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="loadCampaigns()">refresh</button>
+          <span id="camp_summary" class="ml-2 text-xs" style="color: #555566;"></span>
+        </div>
+
+        <div id="campaigns_table" class="scrollable-container rounded-lg border p-6 text-xs"
+             style="background: #151520; border-color: #2a2a3e; color: #e0e0e8;">
+          <div class="empty-state">
+            <div class="empty-state-icon" style="font-size: 64px; opacity: 0.6;">🎯</div>
+            <div class="empty-state-title" style="font-size: 18px; margin-bottom: 12px;">No campaigns found</div>
+            <div class="empty-state-description" style="font-size: 14px; margin-bottom: 20px;">Expand this section to automatically load campaign data</div>
+          </div>
+        </div>
+
+        <details class="mt-3 rounded-lg border p-3" style="background: #151520; border-color: #2a2a3e;">
+          <summary class="cursor-pointer text-xs" style="color: #e0e0e8;">raw json</summary>
+          <div id="campaigns_raw" class="mt-3 scrollable-container text-xs font-mono" style="color: #e0e0e8;">
+            <div class="empty-state">
+              <div class="empty-state-icon">📊</div>
+              <div class="empty-state-title">No campaign data</div>
+            </div>
+          </pre>
+        </details>
+
+        <p class="mt-3 text-xs" style="color: #8888a0;">Status rules (v1): ROAS ≥ 3 scale, 1–3 hold, &lt;1 cut, spend&gt;0 &amp; revenue=0 test_failed.</p>
+      </div>
+    </section>
+
+    <!-- Budget Simulator Section -->
+    <section class="card mb-8 collapsible-section">
+      <div class="collapsible-header" onclick="toggleCollapse(this)">
+        <div class="card-title" style="color: #a855f7;">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+            <path d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5z"/>
+          </svg>
+          Budget Simulator
+        </div>
+        <svg class="collapsible-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="color: #8888a0;">
+          <path d="M6 4l4 4-4 4"/>
+        </svg>
+      </div>
+      <div class="collapsible-content">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 mb-4">
+          <div class="card">
+            <div class="text-xs mb-3" style="color: #8888a0; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">inputs</div>
+            <div class="flex flex-wrap items-center gap-2 mb-3 text-xs" style="color: #8888a0;">
+              <span>campaign</span>
+              <input id="sim_campaign" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+                     style="border-color: #2a2a3e; color: #e0e0e8; width: 180px;" placeholder="utm_campaign" />
+              <span>delta_spend</span>
+              <input id="sim_delta" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+                     style="border-color: #2a2a3e; color: #e0e0e8; width: 110px;" value="1000" />
+              <span>mode</span>
+              <select id="sim_mode" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none"
+                      style="border-color: #2a2a3e; color: #e0e0e8;">
+                <option value="roas_const">roas_const</option>
+                <option value="cpl_const">cpl_const</option>
+                <option value="cpb_const">cpb_const</option>
+              </select>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 mb-3 text-xs" style="color: #8888a0;">
+              <span>day_from</span>
+              <input id="sim_from" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+                     style="border-color: #2a2a3e; color: #e0e0e8; width: 120px;" placeholder="YYYY-MM-DD" />
+              <span>day_to</span>
+              <input id="sim_to" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+                     style="border-color: #2a2a3e; color: #e0e0e8; width: 120px;" placeholder="YYYY-MM-DD" />
+              <button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="loadBudgetSim()">▶ run</button>
+            </div>
+            <p class="text-xs mb-3" style="color: #555566;">Tip: copy campaign name from Campaign intelligence table.</p>
+            <div class="text-xs" style="color: #555566;">
+              Modes:
+              <ul class="list-disc pl-5 mt-1">
+                <li><span style="color: #e0e0e8;">roas_const</span>: assume ROAS stays the same</li>
+                <li><span style="color: #e0e0e8;">cpl_const</span>: assume cost per lead stays the same</li>
+                <li><span style="color: #e0e0e8;">cpb_const</span>: assume cost per booking stays the same</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="text-xs mb-3" style="color: #8888a0; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">result</div>
+            <div id="sim_cards" class="grid grid-cols-2 gap-3">
+              <div class="empty-state" style="grid-column: 1 / -1;">
+                <div class="empty-state-icon" style="font-size: 64px; opacity: 0.6;">🧮</div>
+                <div class="empty-state-title" style="font-size: 18px; margin-bottom: 12px;">No simulation run</div>
+                <div class="empty-state-description" style="font-size: 14px;">Enter campaign name and click <strong style="color: #00f0ff;">"▶ run"</strong> to simulate budget changes</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <details class="rounded-lg border p-3" style="background: #151520; border-color: #2a2a3e;">
+          <summary class="cursor-pointer text-xs" style="color: #e0e0e8;">raw json</summary>
+          <div id="sim_raw" class="mt-3 scrollable-container text-xs font-mono" style="color: #e0e0e8;">
+            <div class="empty-state">
+              <div class="empty-state-icon">📊</div>
+              <div class="empty-state-title">No simulation data</div>
+            </div>
+          </pre>
+        </details>
+      </div>
+    </section>
+
+    <!-- Alerts Section -->
+    <section id="alerts-section" class="card mb-8 collapsible-section">
+      <div class="collapsible-header" onclick="toggleCollapse(this)">
+        <div class="card-title" style="color: #ffd700;">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"/>
+          </svg>
+          Alerts
+        </div>
+        <svg class="collapsible-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="color: #8888a0;">
+          <path d="M6 4l4 4-4 4"/>
+        </svg>
+      </div>
+      <div class="collapsible-content">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 mb-4">
+          <div class="card">
+            <div class="text-xs mb-3" style="color: #8888a0; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">thresholds</div>
+            <div class="grid grid-cols-2 gap-2 mb-3 text-xs">
+              <label class="flex flex-col gap-1" style="color: #8888a0;">
+                <span>min_roas</span>
+                <input id="thr_min_roas" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+                       style="border-color: #2a2a3e; color: #e0e0e8;" value="1.5" />
+              </label>
+              <label class="flex flex-col gap-1" style="color: #8888a0;">
+                <span>max_cpl</span>
+                <input id="thr_max_cpl" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+                       style="border-color: #2a2a3e; color: #e0e0e8;" value="300" />
+              </label>
+              <label class="flex flex-col gap-1" style="color: #8888a0;">
+                <span>min_booking_rate</span>
+                <input id="thr_min_br" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+                       style="border-color: #2a2a3e; color: #e0e0e8;" value="0.05" />
+              </label>
+              <label class="flex flex-col gap-1" style="color: #8888a0;">
+                <span>max_spend_no_revenue</span>
+                <input id="thr_max_snr" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+                       style="border-color: #2a2a3e; color: #e0e0e8;" value="1000" />
+              </label>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 mb-3">
+              <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="loadThresholds()">load</button>
+              <button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="saveThresholds()">save</button>
+              <span id="thr_hint" class="text-xs" style="color: #555566;"></span>
+            </div>
+            <p class="text-xs" style="color: #555566;">These are guardrails, not gospel. Start conservative, tighten after 2–4 weeks of data.</p>
+          </div>
+
+          <div class="card">
+            <div class="text-xs mb-3" style="color: #8888a0; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">evaluation</div>
+            <div class="flex flex-wrap items-center gap-2 mb-3 text-xs" style="color: #8888a0;">
+              <span>day_from</span>
+              <input id="alert_from" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+                     style="border-color: #2a2a3e; color: #e0e0e8; width: 120px;" placeholder="YYYY-MM-DD" />
+              <span>day_to</span>
+              <input id="alert_to" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+                     style="border-color: #2a2a3e; color: #e0e0e8; width: 120px;" placeholder="YYYY-MM-DD" />
+              <label class="flex items-center gap-2 text-xs" style="color: #8888a0;"><input id="notify_eval" type="checkbox" />notify</label>
+              <button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="evaluateAlerts()">evaluate now</button>
+              <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="loadAlerts()">refresh</button>
+              <span id="alert_eval_hint" class="text-xs" style="color: #555566;"></span>
+            </div>
+            <div id="alerts_table" class="scrollable-container rounded-lg border p-6 text-xs"
+                 style="background: #151520; border-color: #2a2a3e; color: #e0e0e8;">
+              <div class="empty-state">
+                <div class="empty-state-icon" style="font-size: 64px; opacity: 0.6;">⚠️</div>
+                <div class="empty-state-title" style="font-size: 18px; margin-bottom: 12px;">No alerts</div>
+                <div class="empty-state-description" style="font-size: 14px; margin-bottom: 20px;">All systems operational! Expand this section to automatically load alerts</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <details class="rounded-lg border p-3" style="background: #151520; border-color: #2a2a3e;">
+          <summary class="cursor-pointer text-xs" style="color: #e0e0e8;">raw json</summary>
+          <div id="alerts_raw" class="mt-3 scrollable-container text-xs font-mono" style="color: #e0e0e8;">
+            <div class="empty-state">
+              <div class="empty-state-icon">📊</div>
+              <div class="empty-state-title">No alert data</div>
+            </div>
+          </pre>
+        </details>
+      </div>
+    </section>
+
+    <!-- Playbooks Section -->
+    <section class="card mb-8 collapsible-section">
+      <div class="collapsible-header" onclick="toggleCollapse(this)">
+        <div class="card-title" style="color: #00f0ff;">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
+          </svg>
+          Playbooks
+        </div>
+        <svg class="collapsible-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="color: #8888a0;">
+          <path d="M6 4l4 4-4 4"/>
+        </svg>
+      </div>
+      <div class="collapsible-content">
+        <div class="flex flex-wrap items-center gap-2 mb-4">
+          <button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="loadPlaybooks()">📚 load</button>
+          <span class="text-xs" style="color: #8888a0;">Operator guidance: alerts → suggested actions.</span>
+        </div>
+        <div id="playbooks_box" class="scrollable-container rounded-lg border p-6 font-mono text-xs"
+             style="background: #151520; border-color: #2a2a3e; color: #e0e0e8;">
+          <div class="empty-state">
+            <div class="empty-state-icon" style="font-size: 64px; opacity: 0.6;">📚</div>
+            <div class="empty-state-title" style="font-size: 18px; margin-bottom: 12px;">No playbooks loaded</div>
+            <div class="empty-state-description" style="font-size: 14px; margin-bottom: 20px;">Click the <strong style="color: #00f0ff;">"📚 load"</strong> button above to fetch playbooks</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+      <footer class="mt-16 pt-8 pb-6 border-t" style="border-color: #2a2a3e;">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4 text-xs" style="color: #8888a0;">
+          <div class="flex items-center gap-4 flex-wrap justify-center md:justify-start">
+            <div>
+              <span class="font-semibold" style="color: #00f0ff;">Acq Engine</span>
+              <span class="mx-2" style="color: #555566;">•</span>
+              <span>Operator Console</span>
+            </div>
+            <div class="hidden md:block" style="color: #555566;">•</div>
+            <div id="footer-version" class="font-mono" style="color: #b0b0c0;">v…</div>
+          </div>
+          <div class="text-center md:text-right" style="color: #555566;">
+            <div>Tablet-first UI • No CMS admin • Pages are compiled output</div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+<script src="/console_static/toast.js"></script>
+<script src="/console_static/shared/components.js"></script>
+<script src="/console_static/shared/router.js"></script>
+<script>
+// Mobile menu toggle
+(function() {
+  const menuToggle = document.getElementById('mobile-menu-toggle');
+  const sidebar = document.getElementById('sidebar');
+  
+  if (menuToggle && sidebar) {
+    menuToggle.addEventListener('click', function() {
+      const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true';
+      menuToggle.setAttribute('aria-expanded', !isExpanded);
+      sidebar.classList.toggle('-translate-x-full');
+    });
+    
+    // Close menu when clicking outside on mobile
+    document.addEventListener('click', function(e) {
+      if (window.innerWidth < 1024) {
+        if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+          menuToggle.setAttribute('aria-expanded', 'false');
+          sidebar.classList.add('-translate-x-full');
+        }
+      }
+    });
+  }
+})();
+
+// Collapsible sections
+function toggleCollapse(header) {
+  const content = header.nextElementSibling;
+  const icon = header.querySelector('.collapsible-icon');
+  const section = header.closest('.collapsible-section');
+  const isExpanding = !content.classList.contains('expanded');
+  
+  if (content.classList.contains('expanded')) {
+    content.classList.remove('expanded');
+    icon.classList.remove('expanded');
+  } else {
+    content.classList.add('expanded');
+    icon.classList.add('expanded');
+    
+    // Auto-load data when section expands
+    if (isExpanding && section) {
+      const sectionId = section.id || getSectionIdFromContent(content);
+      autoLoadSection(sectionId);
+    }
+  }
+}
+
+function getSectionIdFromContent(content) {
+  // Try to identify section by checking for specific element IDs
+  if (content.querySelector('#pages')) return 'pages-section';
+  if (content.querySelector('#events')) return 'events-section';
+  if (content.querySelector('#leads')) return 'leads-section';
+  if (content.querySelector('#money-board')) return 'money-board-section';
+  if (content.querySelector('#revenue')) return 'revenue-section';
+  if (content.querySelector('#roas')) return 'roas-section';
+  if (content.querySelector('#activity')) return 'activity-section';
+  if (content.querySelector('#kpis')) return 'kpis-section';
+  if (content.querySelector('#spend_table')) return 'spend-section';
+  if (content.querySelector('#campaigns_table')) return 'campaigns-section';
+  if (content.querySelector('#alerts_table')) return 'alerts-section';
+  return null;
+}
+
+function autoLoadSection(sectionId) {
+  const section = document.getElementById(sectionId);
+  if (!section) return;
+  
+  const content = section.querySelector('.collapsible-content');
+  if (!content) return;
+  
+  // Check if already loaded
+  if (content.getAttribute('data-loaded') === 'true') return;
+  
+  // Mark as loading
+  content.setAttribute('data-loaded', 'loading');
+  
+  // Load appropriate data based on section
+  switch(sectionId) {
+    case 'pages-section':
+      loadPages();
+      break;
+    case 'events-section':
+      loadEvents();
+      break;
+    case 'leads-section':
+      loadLeads();
+      break;
+    case 'money-board-section':
+      loadMoneyBoard();
+      break;
+    case 'revenue-section':
+      loadRevenue();
+      break;
+    case 'roas-section':
+      loadRoas();
+      break;
+    case 'activity-section':
+      loadActivity();
+      break;
+    case 'kpis-section':
+      loadKpis();
+      break;
+    case 'spend-section':
+      loadSpend();
+      break;
+    case 'campaigns-section':
+      loadCampaigns();
+      break;
+    case 'alerts-section':
+      loadAlerts();
+      break;
+  }
+  
+  // Mark as loaded after a short delay (allows for async loading)
+  setTimeout(() => {
+    content.setAttribute('data-loaded', 'true');
+  }, 1000);
+}
+
+function navigateToSection(sectionId) {
+  const section = document.getElementById(sectionId);
+  if (!section) return;
+  
+  // Update active nav item
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.remove('active');
+  });
+  const navItem = document.querySelector(`a[href="#${sectionId}"]`);
+  if (navItem) {
+    navItem.classList.add('active');
+  }
+  
+  // Expand section if collapsed
+  const header = section.querySelector('.collapsible-header');
+  const content = section.querySelector('.collapsible-content');
+  if (header && content && !content.classList.contains('expanded')) {
+    content.classList.add('expanded');
+    const icon = header.querySelector('.collapsible-icon');
+    if (icon) icon.classList.add('expanded');
+    
+    // Auto-load data
+    autoLoadSection(sectionId);
+  }
+  
+  // Scroll to section
+  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function handleGlobalSearch(event) {
+  const query = event.target.value.trim();
+  const resultsEl = document.getElementById('search-results');
+  const contentEl = document.getElementById('search-results-content');
+  
+  if (query.length < 2) {
+    resultsEl.classList.add('hidden');
+    return;
+  }
+  
+  resultsEl.classList.remove('hidden');
+  contentEl.innerHTML = '<div class="text-center py-4"><div class="spinner" style="margin: 0 auto;"></div><div class="mt-2 text-sm" style="color: #8888a0;">Searching...</div></div>';
+  
+  try {
+    const db = q("db") || "acq.db";
+    const results = {
+      leads: [],
+      events: [],
+      pages: []
+    };
+    
+    // Search leads
+    try {
+      const leadsData = await api(`/api/leads?db=${db}&limit=50`);
+      const leads = (leadsData.items || []).filter(l => {
+        const searchText = `${l.name || ''} ${l.email || ''} ${l.phone || ''} ${l.message || ''} ${l.utm_campaign || ''}`.toLowerCase();
+        return searchText.includes(query.toLowerCase());
+      });
+      results.leads = leads.slice(0, 10);
+    } catch (e) {}
+    
+    // Search events
+    try {
+      const eventsData = await api(`/api/events?db=${db}&limit=50`);
+      const events = (eventsData.items || []).filter(e => {
+        const searchText = `${e.page_id || ''} ${e.event_name || ''} ${JSON.stringify(e.params_json || {})}`.toLowerCase();
+        return searchText.includes(query.toLowerCase());
+      });
+      results.events = events.slice(0, 10);
+    } catch (e) {}
+    
+    // Search pages
+    try {
+      const pagesData = await api(`/api/pages?db=${db}&limit=50`);
+      const pages = (pagesData.items || []).filter(p => {
+        const searchText = `${p.page_id || ''} ${p.headline || ''} ${p.client_id || ''}`.toLowerCase();
+        return searchText.includes(query.toLowerCase());
+      });
+      results.pages = pages.slice(0, 10);
+    } catch (e) {}
+    
+    // Render results
+    renderSearchResults(results, query);
+  } catch (e) {
+    contentEl.innerHTML = `<div class="text-center py-4 text-sm" style="color: #ff0040;">Error: ${e.message}</div>`;
+  }
+}
+
+function renderSearchResults(results, query) {
+  const contentEl = document.getElementById('search-results-content');
+  const total = results.leads.length + results.events.length + results.pages.length;
+  
+  if (total === 0) {
+    contentEl.innerHTML = '<div class="text-center py-8 text-sm" style="color: #8888a0;">No results found</div>';
+    return;
+  }
+  
+  let html = `<div class="text-xs mb-4" style="color: #8888a0;">Found ${total} result(s) for "${query}"</div>`;
+  
+  // Leads results
+  if (results.leads.length > 0) {
+    html += `<div class="mb-6"><div class="text-sm font-bold mb-2" style="color: #00f0ff;">Leads (${results.leads.length})</div>`;
+    results.leads.forEach(lead => {
+      html += `
+        <div class="p-3 mb-2 rounded border cursor-pointer hover:bg-neutral-800" style="background: #1e1e2e; border-color: #2a2a3e;" onclick="navigateToSection('leads-section'); loadLeads();">
+          <div class="text-sm font-bold" style="color: #00f0ff;">#${lead.lead_id}</div>
+          <div class="text-xs mt-1" style="color: #e0e0e8;">${lead.name || ''} ${lead.email || ''} ${lead.phone || ''}</div>
+          <div class="text-xs mt-1" style="color: #8888a0;">${lead.message || ''}</div>
+        </div>
+      `;
+    });
+    html += `</div>`;
+  }
+  
+  // Events results
+  if (results.events.length > 0) {
+    html += `<div class="mb-6"><div class="text-sm font-bold mb-2" style="color: #00ff88;">Events (${results.events.length})</div>`;
+    results.events.forEach(event => {
+      html += `
+        <div class="p-3 mb-2 rounded border cursor-pointer hover:bg-neutral-800" style="background: #1e1e2e; border-color: #2a2a3e;" onclick="navigateToSection('events-section'); loadEvents();">
+          <div class="text-sm font-bold" style="color: #00ff88;">${event.event_name || 'unknown'}</div>
+          <div class="text-xs mt-1" style="color: #e0e0e8;">Page: ${event.page_id || '-'}</div>
+          <div class="text-xs mt-1 font-mono" style="color: #8888a0;">${new Date(event.timestamp).toLocaleString()}</div>
+        </div>
+      `;
+    });
+    html += `</div>`;
+  }
+  
+  // Pages results
+  if (results.pages.length > 0) {
+    html += `<div class="mb-6"><div class="text-sm font-bold mb-2" style="color: #00f0ff;">Pages (${results.pages.length})</div>`;
+    results.pages.forEach(page => {
+      html += `
+        <div class="p-3 mb-2 rounded border cursor-pointer hover:bg-neutral-800" style="background: #1e1e2e; border-color: #2a2a3e;" onclick="navigateToSection('pages-section'); loadPages();">
+          <div class="text-sm font-bold font-mono" style="color: #00f0ff;">${page.page_id || '-'}</div>
+          <div class="text-xs mt-1" style="color: #e0e0e8;">${page.headline || ''}</div>
+          <div class="text-xs mt-1" style="color: #8888a0;">Client: ${page.client_id || '-'}</div>
+        </div>
+      `;
+    });
+    html += `</div>`;
+  }
+  
+  contentEl.innerHTML = html;
+}
+
+function closeSearchResults() {
+  document.getElementById('search-results').classList.add('hidden');
+  document.getElementById('global-search').value = '';
+}
+
+function getCookie(name) {
+  const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[.$?*|{}()\[\]\\\/\+^]/g, '\\$&') + '=([^;]*)'));
+  return m ? decodeURIComponent(m[1]) : "";
+}
+
+  function secretHeader() {
+  const s = (document.getElementById("secret")?.value || "").trim();
+  return s ? {"X-AE-SECRET": s} : {};
+}
+
+async function apiFetch(url, opts = {}) {
+  const csrf = getCookie("ae_csrf");
+    const csrfHeader = csrf ? {"X-AE-CSRF": csrf} : {};
+    const headers = Object.assign({"content-type": "application/json"}, secretHeader(), csrfHeader, (opts.headers || {}));
+  const init = Object.assign({credentials: "include"}, opts, {headers});
+  return fetch(url, init);
+}
+
+function showAuthMsg(obj) {
+  const el = document.getElementById("auth_msg");
+  el.classList.remove("hidden");
+  el.textContent = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2);
+}
+
+async function refreshMe() {
+  const who = document.getElementById("whoami");
+  const sidebarWho = document.getElementById("sidebar-whoami");
+  try {
+    const r = await apiFetch("/api/auth/me");
+    if (!r.ok) {
+      const anonText = "anon";
+      if (who) who.textContent = anonText;
+      if (sidebarWho) sidebarWho.textContent = anonText;
+      return;
+    }
+    const j = await r.json();
+    const userText = `${j.username} (${j.role})`;
+    if (who) who.textContent = userText;
+    if (sidebarWho) sidebarWho.textContent = userText;
+  } catch (e) {
+    const errorText = "…";
+    if (who) who.textContent = errorText;
+    if (sidebarWho) sidebarWho.textContent = errorText;
+  }
+}
+
+async function login() {
+  const u = (document.getElementById("login_user").value || "").trim();
+  const p = (document.getElementById("login_pass").value || "").trim();
+  if (!u || !p) {
+    toast.error("Missing username/password");
+    return showAuthMsg("missing username/password");
+  }
+  try {
+    const r = await apiFetch("/api/auth/login", {method: "POST", body: JSON.stringify({username: u, password: p})});
+    const j = await r.json().catch(()=>({}));
+    if (!r.ok) {
+      toast.error(j.detail || "Login failed");
+      return showAuthMsg(j.detail || j || "login failed");
+    }
+    toast.success(`Logged in as ${u}`);
+    showAuthMsg(j);
+    await refreshMe();
+    // Show interface after successful login
+    await checkAuthAndShowInterface();
+    // Close login modal if open
+    closeLoginModal();
+    // Reload current section if on Money Board
+    if (window.location.hash.includes('money-board-section')) {
+      setTimeout(() => loadMoneyBoard(), 500);
+    }
+  } catch (e) {
+    toast.error("Login error: " + e.message);
+    showAuthMsg("Login error: " + e.message);
+  }
+}
+
+async function logout() {
+  try {
+    const r = await apiFetch("/api/auth/logout", {method: "POST", body: "{}"});
+    const j = await r.json().catch(()=>({}));
+    toast.info("Logged out");
+    showAuthMsg(j);
+    await refreshMe();
+    // Hide interface and show login overlay after logout
+    await checkAuthAndShowInterface();
+  } catch (e) {
+    toast.error("Logout error: " + e.message);
+    // Still hide interface on logout error
+    await checkAuthAndShowInterface();
+  }
+}
+async function api(path, opts={}) {
+  const headers = opts.headers || {};
+  // If you set window.AE_SECRET in DevTools, it will be used.
+  if (window.AE_SECRET) headers["X-AE-SECRET"] = window.AE_SECRET;
+  opts.headers = headers;
+  const res = await apiFetch(path, opts);
+  const text = await res.text();
+  let data = null;
+  try { data = JSON.parse(text); } catch (e) {}
+  if (!res.ok) {
+    // Hide interface and show login overlay on unauthorized
+    if (res.status === 401 || res.status === 403) {
+      document.body.classList.remove("authenticated");
+      const overlay = document.getElementById("login-overlay");
+      if (overlay) overlay.style.display = "flex";
+      // Trigger auth check to set up the overlay properly
+      checkAuthAndShowInterface();
+    }
+    throw new Error((data && data.detail) ? data.detail : text);
+  }
+  return data;
+}
+
+function showLoginModal() {
+  // Old modal removed - redirect to use overlay instead
+  checkAuthAndShowInterface();
+}
+
+function closeLoginModal() {
+  // Old modal removed - this function kept for backward compatibility
+  // The overlay is controlled by checkAuthAndShowInterface()
+}
+
+async function modalLogin() {
+  // Old modal removed - redirect to overlay login
+  await overlayLogin();
+}
+
+async function overlayLogin() {
+  const u = (document.getElementById("overlay_login_user")?.value || "").trim();
+  const p = (document.getElementById("overlay_login_pass")?.value || "").trim();
+  const msgEl = document.getElementById("overlay_auth_msg");
+  
+  if (!u || !p) {
+    if (msgEl) {
+      msgEl.textContent = "Username and password required";
+      msgEl.classList.remove("hidden");
+    }
+    return;
+  }
+  
+  try {
+    const r = await apiFetch("/api/auth/login", {method: "POST", body: JSON.stringify({username: u, password: p})});
+    const j = await r.json().catch(()=>({}));
+    if (!r.ok) {
+      if (msgEl) {
+        msgEl.textContent = j.detail || "Login failed";
+        msgEl.classList.remove("hidden");
+      }
+      if (typeof toast !== 'undefined') toast.error(j.detail || "Login failed");
+      return;
+    }
+    if (typeof toast !== 'undefined') toast.success(`Logged in as ${u}`);
+    await refreshMe();
+    // Show interface after successful login
+    await checkAuthAndShowInterface();
+    // Clear form
+    const userInput = document.getElementById("overlay_login_user");
+    const passInput = document.getElementById("overlay_login_pass");
+    if (userInput) userInput.value = "";
+    if (passInput) passInput.value = "";
+    if (msgEl) {
+      msgEl.textContent = "";
+      msgEl.classList.add("hidden");
+    }
+  } catch (e) {
+    if (msgEl) {
+      msgEl.textContent = "Login error: " + e.message;
+      msgEl.classList.remove("hidden");
+    }
+    if (typeof toast !== 'undefined') toast.error("Login error: " + e.message);
+  }
+}
+
+window.showLoginModal = showLoginModal;
+window.closeLoginModal = closeLoginModal;
+window.modalLogin = modalLogin;
+window.overlayLogin = overlayLogin;
+// Make api function globally available
+window.api = api;
+window.apiFetch = apiFetch;
+window.q = q;
+
+async function checkHealth() {
+  const healthEl = document.getElementById("health-text");
+  const indicatorEl = document.getElementById("health-indicator");
+  try {
+    const data = await api("/api/health");
+    if (data.ok) {
+      healthEl.textContent = "OK";
+      healthEl.className = "mt-2 text-lg font-semibold flex items-center gap-2 text-green-400";
+      indicatorEl.className = "inline-block w-2 h-2 rounded-full bg-green-500";
+    } else {
+      healthEl.textContent = "BAD";
+      healthEl.className = "mt-2 text-lg font-semibold flex items-center gap-2 text-yellow-400";
+      indicatorEl.className = "inline-block w-2 h-2 rounded-full bg-yellow-500";
+    }
+  } catch (e) {
+    healthEl.textContent = "ERR: " + e.message;
+    healthEl.className = "mt-2 text-lg font-semibold flex items-center gap-2 text-red-400";
+    indicatorEl.className = "inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse";
+  }
+}
+checkHealth();
+// Check authentication and show/hide interface accordingly
+async function checkAuthAndShowInterface() {
+  try {
+    const r = await apiFetch("/api/auth/me");
+    if (r.ok) {
+      // Authenticated - show interface
+      document.body.classList.add("authenticated");
+      const overlay = document.getElementById("login-overlay");
+      if (overlay) overlay.style.display = "none";
+      await refreshMe();
+    } else if (r.status === 401 || r.status === 403) {
+      // Not authenticated - hide interface and show login overlay
+      document.body.classList.remove("authenticated");
+      const overlay = document.getElementById("login-overlay");
+      if (overlay) {
+        overlay.style.display = "flex";
+        // Focus username input and set up Enter key handlers
+        setTimeout(() => {
+          const userInput = document.getElementById("overlay_login_user");
+          const passInput = document.getElementById("overlay_login_pass");
+          if (userInput) {
+            userInput.focus();
+            userInput.onkeydown = (e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                if (passInput) passInput.focus();
+              }
+            };
+          }
+          if (passInput) {
+            passInput.onkeydown = (e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                overlayLogin();
+              }
+            };
+          }
+        }, 100);
+      }
+    }
+  } catch (e) {
+    // On error, assume not authenticated
+    document.body.classList.remove("authenticated");
+    const overlay = document.getElementById("login-overlay");
+    if (overlay) {
+      overlay.style.display = "flex";
+      // Set up Enter key handlers
+      setTimeout(() => {
+        const userInput = document.getElementById("overlay_login_user");
+        const passInput = document.getElementById("overlay_login_pass");
+        if (userInput) {
+          userInput.focus();
+          userInput.onkeydown = (e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              if (passInput) passInput.focus();
+            }
+          };
+        }
+        if (passInput) {
+          passInput.onkeydown = (e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              overlayLogin();
+            }
+          };
+        }
+      }, 100);
+    }
+  }
+}
+
+// Check auth status on load - hide interface until authenticated
+checkAuthAndShowInterface();
+
+function q(id){ return document.getElementById(id).value.trim(); }
+
+async function loadPages() {
+  const pagesEl = document.getElementById("pages");
+  if (!pagesEl) {
+    console.error('[loadPages] Pages element not found');
+    return;
+  }
+  pagesEl.innerHTML = '<div class="empty-state"><div class="spinner" style="margin: 0 auto;"></div><div class="empty-state-title mt-4">Loading pages...</div></div>';
+  try {
+    const db = (typeof q === 'function' ? q("db") : (document.getElementById("db")?.value || "acq.db")) || "acq.db";
+    const params = new URLSearchParams({db});
+    const page_status = (typeof q === 'function' ? q("page_status") : (document.getElementById("page_status")?.value || ""));
+    const client_id = (typeof q === 'function' ? q("client_id") : (document.getElementById("client_id")?.value || ""));
+    const template_id = (typeof q === 'function' ? q("template_id") : (document.getElementById("template_id")?.value || ""));
+    const geo_city = (typeof q === 'function' ? q("geo_city") : (document.getElementById("geo_city")?.value || ""));
+    if (page_status) params.set("page_status", page_status);
+    if (client_id) params.set("client_id", client_id);
+    if (template_id) params.set("template_id", template_id);
+    if (geo_city) params.set("geo_city", geo_city);
+    console.log('[loadPages] Fetching pages data...');
+    const response = await (typeof api === 'function' ? api : window.api)("/api/pages?" + params.toString());
+    const data = response.items || response; // Handle both {items: [...]} and [...] formats
+    const items = Array.isArray(data) ? data : (response.items || []);
+    console.log('[loadPages] Pages data received, count:', items.length);
+    if (items && items.length > 0) {
+      if (typeof renderPages === 'function') {
+        renderPages(items, db);
+      } else {
+        console.error('[loadPages] renderPages function not found');
+        return;
+      }
+      if (typeof toast !== 'undefined' && toast.success) {
+        toast.success(`Loaded ${items.length} page(s)`);
+      }
+    } else {
+      pagesEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📄</div><div class="empty-state-title">No pages found</div><div class="empty-state-description">Try adjusting filters or create a page</div></div>';
+      if (typeof toast !== 'undefined' && toast.info) {
+        toast.info("No pages found matching filters");
+      }
+    }
+  } catch (e) {
+    console.error('[loadPages] Error:', e);
+    pagesEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error loading pages</div><div class="empty-state-description">${e.message}</div></div>`;
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error("Error loading pages: " + e.message);
+    }
+  }
+}
+window.loadPages = loadPages;
+window.renderPages = renderPages;
+
+function renderPages(pages, db) {
+  const pagesEl = document.getElementById("pages");
+  const dbParam = db || q("db") || "acq.db";
+  
+  if (!pages || pages.length === 0) {
+    pagesEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📄</div><div class="empty-state-title">No pages found</div></div>';
+    return;
+  }
+  
+  const html = pages.map(page => {
+    const status = page.page_status || "draft";
+    const statusColor = status === "live" ? "#00ff88" : status === "paused" ? "#ffd700" : "#8888a0";
+    const pageId = page.page_id;
+    
+    return `<div class="mb-4 p-4 rounded-lg border" style="background: #151520; border-color: #2a2a3e;">
+      <div class="flex items-start justify-between mb-3">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="font-mono font-semibold text-sm" style="color: #00f0ff;">${pageId}</span>
+            <span class="px-2 py-1 rounded text-xs font-medium" style="background: ${statusColor}20; color: ${statusColor}; border: 1px solid ${statusColor}40;">${status}</span>
+          </div>
+          <div class="text-xs" style="color: #8888a0;">
+            <div>Client: <span class="font-mono" style="color: #e0e0e8;">${page.client_id || "—"}</span></div>
+            <div>Template: <span class="font-mono" style="color: #e0e0e8;">${page.template_id || "—"}</span></div>
+            <div>Slug: <span class="font-mono" style="color: #e0e0e8;">${page.page_slug || "—"}</span></div>
+            ${page.page_url ? `<div>URL: <a href="${page.page_url}" target="_blank" class="font-mono" style="color: #00f0ff; text-decoration: underline;">${page.page_url}</a></div>` : ""}
+          </div>
+        </div>
+        <div class="flex flex-col gap-2">
+          <button onclick="validatePage('${pageId}', '${dbParam}')" 
+                  class="px-3 py-1.5 text-xs rounded-lg border transition-colors"
+                  style="background: #1b2636; border-color: #2a2a3e; color: #e0e0e8; hover:background: #23314a;">
+            ✓ Validate
+          </button>
+          ${status !== "live" ? `<button onclick="publishPage('${pageId}', '${dbParam}')" 
+                  class="px-3 py-1.5 text-xs rounded-lg border transition-colors"
+                  style="background: #00ff8820; border-color: #00ff8840; color: #00ff88;">
+            🚀 Publish
+          </button>` : ""}
+          ${status === "live" ? `<button onclick="pausePage('${pageId}', '${dbParam}')" 
+                  class="px-3 py-1.5 text-xs rounded-lg border transition-colors"
+                  style="background: #ffd70020; border-color: #ffd70040; color: #ffd700;">
+            ⏸ Pause
+          </button>` : ""}
+          <button onclick="viewPageDetails('${pageId}', '${dbParam}')" 
+                  class="px-3 py-1.5 text-xs rounded-lg border transition-colors"
+                  style="background: #1b2636; border-color: #2a2a3e; color: #00f0ff;">
+            👁 Details
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+  
+  pagesEl.innerHTML = html;
+}
+
+async function validatePage(pageId, db) {
+  try {
+    const params = new URLSearchParams({db: db || q("db") || "acq.db"});
+    const result = await api(`/api/pages/${pageId}/validate?${params.toString()}`, {method: "POST"});
+    if (result.ok) {
+      toast.success(`Page ${pageId} validated successfully`);
+    } else {
+      toast.error(`Validation failed: ${result.errors?.join(", ") || "Unknown error"}`);
+    }
+    await loadPages(); // Refresh
+  } catch (e) {
+    toast.error(`Error validating page: ${e.message}`);
+  }
+}
+
+async function publishPage(pageId, db) {
+  if (!confirm(`Publish page ${pageId}? This will make it live.`)) return;
+  try {
+    const params = new URLSearchParams({db: db || q("db") || "acq.db"});
+    const result = await api(`/api/pages/${pageId}/publish?${params.toString()}`, {method: "POST"});
+    if (result.ok) {
+      toast.success(`Page ${pageId} published successfully`);
+    } else {
+      toast.error(`Publish failed: ${result.errors?.join(", ") || "Unknown error"}`);
+    }
+    await loadPages(); // Refresh
+  } catch (e) {
+    toast.error(`Error publishing page: ${e.message}`);
+  }
+}
+
+async function pausePage(pageId, db) {
+  if (!confirm(`Pause page ${pageId}?`)) return;
+  try {
+    const params = new URLSearchParams({db: db || q("db") || "acq.db"});
+    const result = await api(`/api/pages/${pageId}/pause?${params.toString()}`, {method: "POST"});
+    if (result.ok) {
+      toast.success(`Page ${pageId} paused`);
+    }
+    await loadPages(); // Refresh
+  } catch (e) {
+    toast.error(`Error pausing page: ${e.message}`);
+  }
+}
+
+async function viewPageDetails(pageId, db) {
+  try {
+    const params = new URLSearchParams({db: db || q("db") || "acq.db"});
+    const page = await api(`/api/pages/${pageId}?${params.toString()}`);
+    const pre = document.createElement("pre");
+    pre.className = "text-xs";
+    pre.style.cssText = "color: #e0e0e8; white-space: pre-wrap; word-wrap: break-word; background: #151520; padding: 16px; border-radius: 8px; border: 1px solid #2a2a3e;";
+    pre.textContent = JSON.stringify(page, null, 2);
+    
+    // Show in modal or replace content
+    const pagesEl = document.getElementById("pages");
+    pagesEl.innerHTML = `<div class="mb-4">
+      <button onclick="loadPages()" class="px-3 py-1.5 text-xs rounded-lg border mb-3" style="background: #1b2636; border-color: #2a2a3e; color: #e0e0e8;">← Back to list</button>
+    </div>`;
+    pagesEl.appendChild(pre);
+  } catch (e) {
+    toast.error(`Error loading page details: ${e.message}`);
+  }
+}
+
+async function bulkValidate() {
+  const bulkEl = document.getElementById("bulk");
+  bulkEl.innerHTML = '<div class="empty-state"><div class="spinner" style="margin: 0 auto;"></div><div class="empty-state-title mt-4">Running validation...</div></div>';
+  try {
+    const db = q("db") || "acq.db";
+    const payload = {
+      action: "validate",
+      db,
+      page_status: q("page_status") || null,
+      client_id: q("client_id") || null,
+      template_id: q("template_id") || null,
+      geo_city: q("geo_city") || null,
+      limit: 200,
+      execute: false
+    };
+    const data = await api("/api/bulk/run", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(payload)});
+    const pre = document.createElement("pre");
+    pre.className = "text-xs";
+    pre.style.cssText = "color: #e0e0e8; white-space: pre-wrap; word-wrap: break-word;";
+    pre.textContent = JSON.stringify(data, null, 2);
+    bulkEl.innerHTML = "";
+    bulkEl.appendChild(pre);
+    const count = data?.results?.length || 0;
+    toast.success(`Validation complete: ${count} page(s) checked`);
+  } catch (e) {
+    bulkEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Validation error</div><div class="empty-state-description">${e.message}</div></div>`;
+    toast.error("Validation error: " + e.message);
+  }
+}
+
+
+
+
+function saveSecret() {
+  const v = (document.getElementById("secret").value || "").trim();
+  localStorage.setItem("ae_secret", v);
+}
+function loadSecret() {
+  const v = (localStorage.getItem("ae_secret") || "").trim();
+  document.getElementById("secret").value = v;
+}
+
+async function loadSpend() {
+  const spendEl = document.getElementById("spend_table");
+  if (!spendEl) {
+    console.error('[loadSpend] Spend element not found');
+    return;
+  }
+  spendEl.innerHTML = '<div class="empty-state"><div class="spinner" style="margin: 0 auto;"></div><div class="empty-state-title mt-4">Loading spend...</div></div>';
+  try {
+    const db = (typeof q === 'function' ? q("db") : (document.getElementById("db")?.value || "acq.db")) || "acq.db";
+    const params = new URLSearchParams({db, limit: "200"});
+    console.log('[loadSpend] Fetching spend data...');
+    const data = await (typeof api === 'function' ? api : window.api)("/api/spend?" + params.toString());
+    console.log('[loadSpend] Spend data received, count:', (data.items || []).length);
+    if (typeof renderSpend === 'function') {
+      renderSpend(data.items || []);
+    } else {
+      console.error('[loadSpend] renderSpend function not found');
+      return;
+    }
+    const count = (data.items || []).length;
+    if (typeof toast !== 'undefined') {
+      if (count > 0) {
+        toast.success(`Loaded ${count} spend entry/entries`);
+      } else {
+        toast.info("No spend data found");
+      }
+    }
+  } catch (e) {
+    console.error('[loadSpend] Error:', e);
+    spendEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error loading spend</div><div class="empty-state-description">${e.message}</div></div>`;
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error("Error loading spend: " + e.message);
+    }
+  }
+}
+window.loadSpend = loadSpend;
+window.renderSpend = renderSpend;
+
+async function updateSpend(spendId, patch) {
+  const db = q("db") || "acq.db";
+  const params = new URLSearchParams({db});
+  await api(`/api/spend/${spendId}?` + params.toString(), {
+    method: "POST",
+    headers: {"content-type": "application/json"},
+    body: JSON.stringify(patch || {})
+  });
+  await loadSpend();
+  await loadSpend();
+  await loadRoas();
+}
+
+async function deleteSpend(spendId) {
+  const db = q("db") || "acq.db";
+  const params = new URLSearchParams({db});
+  await api(`/api/spend/${spendId}?` + params.toString(), {method: "DELETE"});
+  await loadSpend();
+  await loadRoas();
+}
+
+function renderSpend(items) {
+  const el = document.getElementById("spend_table");
+  if (!items || !items.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💸</div><div class="empty-state-title">No spend data</div><div class="empty-state-description">Import spend data to see it here</div></div>';
+    return;
+  }
+  el.innerHTML = "";
+  for (const it of items) {
+    const row = document.createElement("div");
+    row.className = "card mb-3";
+    row.style.cssText = "padding: 16px; border-color: #2a2a3e;";
+    row.innerHTML = `<div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+      <div class="font-mono text-sm font-bold" style="color: #00f0ff;">#${it.spend_id}</div>
+      <div class="text-xs" style="color: #8888a0;">${it.day} · ${it.source} · ${it.utm_campaign || ""}</div>
+    </div>`;
+
+    const controls = document.createElement("div");
+    controls.className = "flex flex-wrap items-center gap-2";
+
+    const v = document.createElement("input");
+    v.className = "px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono";
+    v.style.cssText = "border-color: #2a2a3e; color: #e0e0e8; width: 110px;";
+    v.value = String(it.spend_value ?? "");
+
+    const cur = document.createElement("input");
+    cur.className = "px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono";
+    cur.style.cssText = "border-color: #2a2a3e; color: #e0e0e8; width: 70px;";
+    cur.value = String(it.spend_currency ?? "THB");
+
+    const bSave = document.createElement("button");
+    bSave.className = "btn btn-primary";
+    bSave.style.cssText = "padding: 6px 12px; font-size: 12px;";
+    bSave.textContent = "💾 save";
+    bSave.onclick = () => {
+      updateSpend(it.spend_id, {spend_value: v.value ? Number(v.value) : 0, spend_currency: cur.value || "THB"});
+      toast.success("Spend updated");
+    };
+
+    const bDel = document.createElement("button");
+    bDel.className = "btn btn-danger";
+    bDel.style.cssText = "padding: 6px 12px; font-size: 12px;";
+    bDel.textContent = "🗑️ delete";
+    bDel.onclick = () => {
+      if (confirm("Delete this spend entry?")) {
+        deleteSpend(it.spend_id);
+        toast.success("Spend entry deleted");
+      }
+    };
+
+    controls.appendChild(document.createTextNode("value"));
+    controls.appendChild(v);
+    controls.appendChild(cur);
+    controls.appendChild(bSave);
+    controls.appendChild(bDel);
+
+    row.appendChild(controls);
+    el.appendChild(row);
+  }
+}
+
+function isoDay(d) {
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(d.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
+}
+
+function setKpiPreset(kind) {
+  const fromEl = document.getElementById("kpi_from");
+  const toEl = document.getElementById("kpi_to");
+  const hint = document.getElementById("kpi_hint");
+  const now = new Date();
+  const today = isoDay(now);
+
+  if (kind === "all") {
+    fromEl.value = "";
+    toEl.value = "";
+    hint.textContent = "window: all time";
+    loadKpis();
+    return;
+  }
+
+  const to = today;
+  let from = today;
+  if (kind === "7d") {
+    const d = new Date(now.getTime() - 6 * 24 * 3600 * 1000);
+    from = isoDay(d);
+    hint.textContent = "window: last 7 days";
+  } else if (kind === "30d") {
+    const d = new Date(now.getTime() - 29 * 24 * 3600 * 1000);
+    from = isoDay(d);
+    hint.textContent = "window: last 30 days";
+  } else {
+    hint.textContent = "window: today";
+  }
+  fromEl.value = from;
+  toEl.value = to;
+  loadKpis();
+}
+
+function fmt(n, digits=2) {
+  if (n === null || n === undefined) return "—";
+  if (typeof n !== "number") return String(n);
+  return n.toFixed(digits);
+}
+
+function fmtInt(n) {
+  if (n === null || n === undefined) return "—";
+  return String(Math.trunc(n));
+}
+
+function card(label, value, sub, color = "#00f0ff") {
+  const el = document.createElement("div");
+  el.className = "card";
+  el.style.cssText = "padding: 16px; border-color: #2a2a3e;";
+  el.innerHTML = `<div class="text-xs mb-2" style="color: #8888a0; text-transform: uppercase; letter-spacing: 0.05em;">${label}</div>
+                  <div class="text-xl font-bold mb-1" style="color: ${color};">${value}</div>
+                  <div class="text-xs" style="color: #555566;">${sub || ""}</div>`;
+  return el;
+}
+
+function sparkline(series, valueKey, height=64) {
+  const w = 320;
+  const h = height;
+  const pad = 6;
+
+  const vals = (series || []).map(x => Number(x[valueKey] ?? x.value ?? x.count ?? 0));
+  if (!vals.length) return `<div class="text-xs" style="color: #555566;">(no data)</div>`;
+  const min = Math.min(...vals);
+  const max = Math.max(...vals);
+  const rng = (max - min) || 1;
+
+  const pts = vals.map((v, i) => {
+    const x = pad + (i * (w - pad*2) / Math.max(1, vals.length - 1));
+    const y = pad + ((max - v) * (h - pad*2) / rng);
+    return [x, y];
+  });
+
+  const path = pts.map((p,i)=> (i===0?`M ${p[0]} ${p[1]}`:`L ${p[0]} ${p[1]}`)).join(" ");
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" style="filter: drop-shadow(0 0 2px currentColor);">
+    <path d="${path}" fill="none" stroke="currentColor" stroke-width="2" opacity="0.9"></path>
+  </svg>`;
+}
+
+function renderKpis(data) {
+  const totals = data?.totals || {};
+  const cards = document.getElementById("kpi_cards");
+  cards.innerHTML = "";
+
+  // Helper to determine color based on KPI thresholds
+  const getKpiColor = (kpiName, value) => {
+    if (value === null || value === undefined) return "#8888a0";
+    switch(kpiName) {
+      case "ROAS":
+        return value >= 1.0 ? "#00ff88" : value >= 0.5 ? "#ffd700" : "#ff0040";
+      case "CPL":
+        return value <= 50 ? "#00ff88" : value <= 100 ? "#ffd700" : "#ff0040";
+      case "CPBooking":
+        return value <= 200 ? "#00ff88" : value <= 500 ? "#ffd700" : "#ff0040";
+      case "booking_rate":
+        return value >= 0.2 ? "#00ff88" : value >= 0.1 ? "#ffd700" : "#ff0040";
+      case "AOV":
+        return value >= 500 ? "#00ff88" : value >= 200 ? "#ffd700" : "#ff0040";
+      default:
+        return "#00f0ff";
+    }
+  };
+
+  cards.appendChild(card("leads (non-spam)", fmtInt(totals.leads_nospam || 0), `total leads: ${fmtInt(totals.leads_total || 0)}`, "#00f0ff"));
+  cards.appendChild(card("bookings", fmtInt(totals.bookings || 0), `booking rate: ${fmt(totals.booking_rate ?? null, 3)}`, getKpiColor("booking_rate", totals.booking_rate)));
+  cards.appendChild(card("revenue", fmt(totals.revenue || 0, 0), "sum of booking_value (booked/paid)", "#00ff88"));
+  cards.appendChild(card("spend", fmt(totals.spend || 0, 0), "imported daily spend", "#ffd700"));
+  cards.appendChild(card("ROAS", fmt(totals.roas ?? null, 2), "revenue / spend", getKpiColor("ROAS", totals.roas)));
+  cards.appendChild(card("CPL", fmt(totals.cpl ?? null, 2), "spend / leads", getKpiColor("CPL", totals.cpl)));
+  cards.appendChild(card("CPBooking", fmt(totals.cpb ?? null, 2), "spend / bookings", getKpiColor("CPBooking", totals.cpb)));
+  cards.appendChild(card("AOV", fmt(totals.aov ?? null, 0), "revenue / bookings", getKpiColor("AOV", totals.aov)));
+
+  const s = data?.series || {};
+  const chart = document.getElementById("kpi_chart");
+  chart.style.color = "#00ff88"; // Akira green for revenue
+  chart.innerHTML = `<div class="text-xs mb-2" style="color: #8888a0;">revenue</div>${sparkline(s.revenue || [], "value", 64)}
+                     <div class="mt-3 text-xs mb-2" style="color: #8888a0;">spend</div>${sparkline(s.spend || [], "value", 64)}`;
+  chart.querySelectorAll('svg path').forEach((path, i) => {
+    if (i === 0) path.style.stroke = "#00ff88"; // revenue = green
+    if (i === 1) path.style.stroke = "#ffd700"; // spend = yellow
+  });
+
+  const chart2 = document.getElementById("kpi_chart2");
+  chart2.style.color = "#00f0ff"; // Akira cyan for leads
+  chart2.innerHTML = `<div class="text-xs mb-2" style="color: #8888a0;">leads</div>${sparkline(s.leads_nospam || [], "count", 64)}
+                      <div class="mt-3 text-xs mb-2" style="color: #8888a0;">bookings</div>${sparkline(s.bookings || [], "count", 64)}`;
+  chart2.querySelectorAll('svg path').forEach((path, i) => {
+    if (i === 0) path.style.stroke = "#00f0ff"; // leads = cyan
+    if (i === 1) path.style.stroke = "#00ff88"; // bookings = green
+  });
+}
+
+function badge(status) {
+  const s = String(status || "no_data");
+  let color = "#8888a0";
+  let bgColor = "rgba(136, 136, 160, 0.1)";
+  let borderColor = "#2a2a3e";
+  
+  if (s.toLowerCase().includes("scale") || s.toLowerCase().includes("good")) {
+    color = "#00ff88";
+    bgColor = "rgba(0, 255, 136, 0.1)";
+    borderColor = "#00ff88";
+  } else if (s.toLowerCase().includes("hold") || s.toLowerCase().includes("warning")) {
+    color = "#ffd700";
+    bgColor = "rgba(255, 215, 0, 0.1)";
+    borderColor = "#ffd700";
+  } else if (s.toLowerCase().includes("cut") || s.toLowerCase().includes("error") || s.toLowerCase().includes("failed")) {
+    color = "#ff0040";
+    bgColor = "rgba(255, 0, 64, 0.1)";
+    borderColor = "#ff0040";
+  }
+  
+  return `<span class="badge" style="color: ${color}; background: ${bgColor}; border-color: ${borderColor}; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; border: 1px solid;">${s}</span>`;
+}
+
+function rowHtml(c, index) {
+  const camp = (c.campaign || "(none)");
+  const roas = (c.roas === null || c.roas === undefined) ? "—" : Number(c.roas).toFixed(2);
+  const cpl = (c.cpl === null || c.cpl === undefined) ? "—" : Number(c.cpl).toFixed(2);
+  const cpb = (c.cpb === null || c.cpb === undefined) ? "—" : Number(c.cpb).toFixed(2);
+  const br = (c.booking_rate === null || c.booking_rate === undefined) ? "—" : Number(c.booking_rate).toFixed(3);
+  const roasColor = c.roas >= 3 ? "#00ff88" : c.roas >= 1 ? "#ffd700" : "#ff0040";
+  
+  // Alternating row colors for better accessibility
+  const rowClass = index % 2 === 0 ? "table-row-even" : "table-row-odd";
+  
+  return `<div class="grid grid-cols-12 gap-2 items-center border-b p-3 transition-colors ${rowClass}"
+           style="border-bottom-color: #3a3a4e; border-bottom-width: 2px; color: #e8e8f0;">
+    <div class="col-span-3 font-mono text-xs truncate" style="color: #00f0ff;" title="${camp}">${camp}</div>
+    <div class="col-span-1 text-right">${badge(c.status)}</div>
+    <div class="col-span-1 text-right font-mono" style="color: #e8e8f0;">${(c.leads ?? 0)}</div>
+    <div class="col-span-1 text-right font-mono" style="color: #e8e8f0;">${(c.bookings ?? 0)}</div>
+    <div class="col-span-2 text-right font-mono" style="color: #00ff88; font-weight: 500;">${Number(c.revenue ?? 0).toFixed(0)}</div>
+    <div class="col-span-2 text-right font-mono" style="color: #ffd700; font-weight: 500;">${Number(c.spend ?? 0).toFixed(0)}</div>
+    <div class="col-span-1 text-right font-mono font-bold" style="color: ${roasColor};">${roas}</div>
+    <div class="col-span-1 text-right font-mono" style="color: #b0b0c0;">${cpl}</div>
+    <div class="col-span-1 text-right font-mono" style="color: #b0b0c0;">${cpb}</div>
+    <div class="col-span-1 text-right font-mono" style="color: #b0b0c0;">${br}</div>
+  </div>`;
+}
+
+function renderCampaigns(data) {
+  const el = document.getElementById("campaigns_table");
+  const raw = document.getElementById("campaigns_raw");
+  const sum = document.getElementById("camp_summary");
+  raw.textContent = JSON.stringify(data, null, 2);
+
+  const totals = data?.totals || {};
+  sum.textContent = `totals: spend=${Number(totals.spend||0).toFixed(0)} revenue=${Number(totals.revenue||0).toFixed(0)} roas=${(totals.roas===null||totals.roas===undefined)?"—":Number(totals.roas).toFixed(2)}`;
+  sum.style.cssText = "color: #8888a0; font-size: 12px;";
+
+  const items = data?.campaigns || [];
+  if (!items.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎯</div><div class="empty-state-title">No campaigns found</div><div class="empty-state-description">Campaign data will appear here</div></div>';
+    return;
+  }
+
+  const header = `<div class="grid grid-cols-12 gap-2 text-xs px-4 py-3 mb-2 border-b" style="color: #b0b0c0; border-bottom-color: #4a4a5e; border-bottom-width: 2px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; background: #1a1a2a;">
+    <div class="col-span-3">utm_campaign</div>
+    <div class="col-span-1 text-right">status</div>
+    <div class="col-span-1 text-right">leads</div>
+    <div class="col-span-1 text-right">book</div>
+    <div class="col-span-2 text-right">revenue</div>
+    <div class="col-span-2 text-right">spend</div>
+    <div class="col-span-1 text-right">roas</div>
+    <div class="col-span-1 text-right">cpl</div>
+    <div class="col-span-1 text-right">cpb</div>
+    <div class="col-span-1 text-right">br</div>
+  </div>`;
+  el.innerHTML = header + items.map((item, index) => rowHtml(item, index)).join("");
+}
+
+async function loadCampaigns() {
+  const campaignsEl = document.getElementById("campaigns_table");
+  if (!campaignsEl) {
+    console.error('[loadCampaigns] Campaigns element not found');
+    return;
+  }
+  campaignsEl.innerHTML = '<div class="empty-state"><div class="spinner" style="margin: 0 auto;"></div><div class="empty-state-title mt-4">Loading campaigns...</div></div>';
+  try {
+    const db = (typeof q === 'function' ? q("db") : (document.getElementById("db")?.value || "acq.db")) || "acq.db";
+    const day_from = (document.getElementById("camp_from")?.value || "").trim();
+    const day_to = (document.getElementById("camp_to")?.value || "").trim();
+    const min_spend = (document.getElementById("camp_min_spend")?.value || "0").trim();
+    const sort_by = document.getElementById("camp_sort")?.value || "roas";
+    const params = new URLSearchParams({db, sort_by, min_spend});
+    if (day_from) params.set("day_from", day_from);
+    if (day_to) params.set("day_to", day_to);
+    console.log('[loadCampaigns] Fetching campaigns data...');
+    const data = await (typeof api === 'function' ? api : window.api)("/api/stats/campaigns?" + params.toString());
+    console.log('[loadCampaigns] Campaigns data received, count:', (data?.campaigns || []).length);
+    if (typeof renderCampaigns === 'function') {
+      renderCampaigns(data);
+    } else {
+      console.error('[loadCampaigns] renderCampaigns function not found');
+      return;
+    }
+    const count = (data?.campaigns || []).length;
+    if (typeof toast !== 'undefined') {
+      if (count > 0) {
+        toast.success(`Loaded ${count} campaign(s)`);
+      } else {
+        toast.info("No campaigns found");
+      }
+    }
+  } catch (e) {
+    console.error('[loadCampaigns] Error:', e);
+    campaignsEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error loading campaigns</div><div class="empty-state-description">${e.message}</div></div>`;
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error("Error loading campaigns: " + e.message);
+    }
+  }
+}
+window.loadCampaigns = loadCampaigns;
+window.renderCampaigns = renderCampaigns;
+
+function simCard(label, value, sub) {
+  const el = document.createElement("div");
+  el.className = "card";
+  el.style.cssText = "padding: 16px; border-color: #2a2a3e;";
+  el.innerHTML = `<div class="text-xs mb-2" style="color: #8888a0; text-transform: uppercase; letter-spacing: 0.05em;">${label}</div>
+                  <div class="text-xl font-bold mb-1" style="color: #00f0ff;">${value}</div>
+                  <div class="text-xs" style="color: #555566;">${sub || ""}</div>`;
+  return el;
+}
+
+function renderBudgetSim(data) {
+  const raw = document.getElementById("sim_raw");
+  raw.textContent = JSON.stringify(data, null, 2);
+  const cards = document.getElementById("sim_cards");
+  cards.innerHTML = "";
+
+  const b = data?.baseline || {};
+  const p = data?.projection || {};
+  const t = data?.projected_totals || {};
+
+  const fmt0 = (n) => (n===null||n===undefined) ? "—" : Number(n).toFixed(0);
+  const fmt2 = (n) => (n===null||n===undefined) ? "—" : Number(n).toFixed(2);
+  const fmt3 = (n) => (n===null||n===undefined) ? "—" : Number(n).toFixed(3);
+
+  cards.appendChild(simCard("baseline ROAS", fmt2(b.roas), `status: ${b.status || "—"}`));
+  cards.appendChild(simCard("mode", String(p.mode || "—"), `delta spend: ${fmt0(p.delta_spend)}`));
+  cards.appendChild(simCard("Δ revenue", fmt0(p.delta_revenue), "projected incremental"));
+  cards.appendChild(simCard("Δ bookings", fmt0(p.delta_bookings), "projected incremental"));
+  cards.appendChild(simCard("Δ leads", fmt0(p.delta_leads), "projected incremental"));
+  cards.appendChild(simCard("projected ROAS", fmt2(t.roas), `revenue ${fmt0(t.revenue)} / spend ${fmt0(t.spend)}`));
+}
+
+async function loadBudgetSim() {
+  const simCardsEl = document.getElementById("sim_cards");
+  simCardsEl.innerHTML = '<div class="empty-state"><div class="spinner" style="margin: 0 auto;"></div><div class="empty-state-title mt-4">Running simulation...</div></div>';
+  try {
+    const db = q("db") || "acq.db";
+    const campaign = (document.getElementById("sim_campaign")?.value || "").trim();
+    const delta_spend = (document.getElementById("sim_delta")?.value || "0").trim();
+    const mode = document.getElementById("sim_mode")?.value || "roas_const";
+    const day_from = (document.getElementById("sim_from")?.value || "").trim();
+    const day_to = (document.getElementById("sim_to")?.value || "").trim();
+
+    if (!campaign) {
+      toast.error("Campaign is required (utm_campaign)");
+      simCardsEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Campaign required</div><div class="empty-state-description">Enter a campaign name to run simulation</div></div>';
+      return;
+    }
+
+    const params = new URLSearchParams({db, campaign, delta_spend, mode});
+    if (day_from) params.set("day_from", day_from);
+    if (day_to) params.set("day_to", day_to);
+
+    const data = await api("/api/sim/budget?" + params.toString());
+    renderBudgetSim(data);
+    toast.success("Budget simulation complete");
+  } catch (e) {
+    simCardsEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Simulation error</div><div class="empty-state-description">${e.message}</div></div>`;
+    toast.error("Simulation error: " + e.message);
+  }
+}
+
+function renderAlerts(data) {
+  const raw = document.getElementById("alerts_raw");
+  raw.textContent = JSON.stringify(data, null, 2);
+  const el = document.getElementById("alerts_table");
+  const items = data?.alerts || [];
+  if (!items.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-title">No alerts</div><div class="empty-state-description">All systems operational</div></div>';
+    return;
+  }
+
+  const header = `<div class="grid grid-cols-12 gap-2 text-xs px-3 py-2 mb-2 border-b" style="color: #8888a0; border-color: #2a2a3e; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">
+    <div class="col-span-2">ts</div>
+    <div class="col-span-2">type</div>
+    <div class="col-span-2">campaign</div>
+    <div class="col-span-1 text-right">metric</div>
+    <div class="col-span-1 text-right">value</div>
+    <div class="col-span-1 text-right">thr</div>
+    <div class="col-span-2">action</div>
+    <div class="col-span-3">message</div>
+  </div>`;
+  const rows = items.map(a => {
+    const ts = (a.ts || "").replace("T"," ").replace("Z","");
+    const camp = a.campaign || "";
+    const metric = a.metric || "";
+    const v = (a.value===null||a.value===undefined) ? "—" : Number(a.value).toFixed(2);
+    const t = (a.threshold===null||a.threshold===undefined) ? "—" : Number(a.threshold).toFixed(2);
+    const msg = a.message || "";
+    const alertColor = a.type === "error" ? "#ff0040" : a.type === "warning" ? "#ffd700" : "#00f0ff";
+    return `<div class="grid grid-cols-12 gap-2 items-center rounded-lg border p-3 mb-2 transition-colors hover:border-cyan-500"
+             style="background: #151520; border-color: #2a2a3e; color: #e0e0e8;">
+      <div class="col-span-2 font-mono text-xs truncate" style="color: #8888a0;" title="${ts}">${ts}</div>
+      <div class="col-span-2 text-xs">${badge(a.type || "")}</div>
+      <div class="col-span-2 font-mono text-xs truncate" style="color: #00f0ff;" title="${camp}">${camp}</div>
+      <div class="col-span-1 text-right font-mono">${metric}</div>
+      <div class="col-span-1 text-right font-mono font-bold" style="color: ${alertColor};">${v}</div>
+      <div class="col-span-1 text-right font-mono">${t}</div>
+      <div class="col-span-2 text-xs truncate" style="color: #00f0ff;" title="${(a.recommendations && a.recommendations[0] && a.recommendations[0].action) || ""}">${(a.recommendations && a.recommendations[0] && a.recommendations[0].action) || ""}</div>
+      <div class="col-span-3 text-xs truncate" style="color: #e0e0e8;" title="${msg}">${msg}</div>
+    </div>`;
+  }).join("");
+  el.innerHTML = header + rows;
+}
+
+async function loadAlerts() {
+  const alertsEl = document.getElementById("alerts_table");
+  if (!alertsEl) {
+    console.error('[loadAlerts] Alerts element not found');
+    return;
+  }
+  alertsEl.innerHTML = '<div class="empty-state"><div class="spinner" style="margin: 0 auto;"></div><div class="empty-state-title mt-4">Loading alerts...</div></div>';
+  try {
+    const db = (typeof q === 'function' ? q("db") : (document.getElementById("db")?.value || "acq.db")) || "acq.db";
+    console.log('[loadAlerts] Fetching alerts data...');
+    const data = await (typeof api === 'function' ? api : window.api)("/api/alerts/list?"+ new URLSearchParams({db}).toString());
+    console.log('[loadAlerts] Alerts data received, count:', (data?.alerts || []).length);
+    if (typeof renderAlerts === 'function') {
+      renderAlerts(data);
+    } else {
+      console.error('[loadAlerts] renderAlerts function not found');
+      return;
+    }
+    const count = (data?.alerts || []).length;
+    if (typeof toast !== 'undefined') {
+      if (count > 0) {
+        toast.warning(`Found ${count} alert(s)`);
+      } else {
+        toast.success("No alerts - all systems operational");
+      }
+    }
+  } catch (e) {
+    console.error('[loadAlerts] Error:', e);
+    alertsEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error loading alerts</div><div class="empty-state-description">${e.message}</div></div>`;
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error("Error loading alerts: " + e.message);
+    }
+  }
+}
+window.loadAlerts = loadAlerts;
+window.renderAlerts = renderAlerts;
+
+async function loadThresholds() {
+  try {
+    const db = (typeof q === 'function' ? q("db") : (document.getElementById("db")?.value || "acq.db")) || "acq.db";
+    console.log('[loadThresholds] Fetching thresholds...');
+    const j = await (typeof api === 'function' ? api : window.api)("/api/alerts/thresholds?"+ new URLSearchParams({db}).toString());
+    const minRoasEl = document.getElementById("thr_min_roas");
+    const maxCplEl = document.getElementById("thr_max_cpl");
+    const minBrEl = document.getElementById("thr_min_br");
+    const maxSnrEl = document.getElementById("thr_max_snr");
+    const hintEl = document.getElementById("thr_hint");
+    if (minRoasEl) minRoasEl.value = j.min_roas ?? 1.5;
+    if (maxCplEl) maxCplEl.value = j.max_cpl ?? 300;
+    if (minBrEl) minBrEl.value = j.min_booking_rate ?? 0.05;
+    if (maxSnrEl) maxSnrEl.value = j.max_spend_no_revenue ?? 1000;
+    if (hintEl) {
+      hintEl.textContent = "loaded";
+      hintEl.style.color = "#00ff88";
+    }
+    if (typeof toast !== 'undefined' && toast.success) {
+      toast.success("Thresholds loaded");
+    }
+  } catch (e) {
+    console.error('[loadThresholds] Error:', e);
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error("Error loading thresholds: " + e.message);
+    }
+  }
+}
+window.loadThresholds = loadThresholds;
+
+async function saveThresholds() {
+  try {
+    const db = q("db") || "acq.db";
+    const body = {
+      min_roas: Number(document.getElementById("thr_min_roas").value),
+      max_cpl: Number(document.getElementById("thr_max_cpl").value),
+      min_booking_rate: Number(document.getElementById("thr_min_br").value),
+      max_spend_no_revenue: Number(document.getElementById("thr_max_snr").value),
+    };
+    const j = await api("/api/alerts/thresholds?"+ new URLSearchParams({db}).toString(), {method:"PUT", body: JSON.stringify(body)});
+    document.getElementById("thr_hint").textContent = "saved";
+    document.getElementById("thr_hint").style.color = "#00ff88";
+    // reflect actual stored values
+    document.getElementById("thr_min_roas").value = j.min_roas;
+    document.getElementById("thr_max_cpl").value = j.max_cpl;
+    document.getElementById("thr_min_br").value = j.min_booking_rate;
+    document.getElementById("thr_max_snr").value = j.max_spend_no_revenue;
+    toast.success("Thresholds saved");
+  } catch (e) {
+    toast.error("Error saving thresholds: " + e.message);
+  }
+}
+
+async function evaluateAlerts() {
+  try {
+    const db = q("db") || "acq.db";
+    const day_from = (document.getElementById("alert_from")?.value || "").trim();
+    const day_to = (document.getElementById("alert_to")?.value || "").trim();
+    const params = new URLSearchParams({db});
+    if (day_from) params.set("day_from", day_from);
+    if (day_to) params.set("day_to", day_to);
+    const notify = document.getElementById("notify_eval")?.checked;
+    if (notify) params.set("notify","1");
+    const j = await api("/api/alerts/evaluate?" + params.toString(), {method:"POST"});
+    const created = j.created ?? 0;
+    document.getElementById("alert_eval_hint").textContent = `created: ${created}`;
+    document.getElementById("alert_eval_hint").style.color = created > 0 ? "#ffd700" : "#8888a0";
+    if (created > 0) {
+      toast.warning(`Created ${created} new alert(s)`);
+    } else {
+      toast.success("No new alerts generated");
+    }
+    await loadAlerts();
+  } catch (e) {
+    toast.error("Alert evaluation error: " + e.message);
+  }
+}
+
+async function ackAlert(id) {
+  const db = q("db") || "acq.db";
+  const note = prompt("note (optional):") || "";
+  const j = await api("/api/alerts/ack?" + new URLSearchParams({db}).toString(), {method:"POST", body: JSON.stringify({id, note})});
+  await loadAlerts();
+  return j;
+}
+
+async function resolveAlert(id) {
+  const db = q("db") || "acq.db";
+  const note = prompt("note (optional):") || "";
+  const j = await api("/api/alerts/resolve?" + new URLSearchParams({db}).toString(), {method:"POST", body: JSON.stringify({id, note})});
+  await loadAlerts();
+  return j;
+}
+
+async function loadPlaybooks() {
+  const box = document.getElementById("playbooks_box");
+  box.innerHTML = '<div class="empty-state"><div class="spinner" style="margin: 0 auto;"></div><div class="empty-state-title mt-4">Loading playbooks...</div></div>';
+  try {
+    const db = q("db") || "acq.db";
+    const j = await api("/api/playbooks?"+ new URLSearchParams({db}).toString());
+    const pre = document.createElement("pre");
+    pre.className = "text-xs font-mono";
+    pre.style.cssText = "color: #e0e0e8; white-space: pre-wrap; word-wrap: break-word;";
+    pre.textContent = JSON.stringify(j, null, 2);
+    box.innerHTML = "";
+    box.appendChild(pre);
+    toast.success("Playbooks loaded");
+  } catch (e) {
+    box.innerHTML = `<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error loading playbooks</div><div class="empty-state-description">${e.message}</div></div>`;
+    toast.error("Error loading playbooks: " + e.message);
+  }
+}
+
+async function loadNotifyConfig() {
+  try {
+    const db = (typeof q === 'function' ? q("db") : (document.getElementById("db")?.value || "acq.db")) || "acq.db";
+    console.log('[loadNotifyConfig] Fetching notify config...');
+    const j = await (typeof api === 'function' ? api : window.api)("/api/notify/config?" + new URLSearchParams({db}).toString());
+    const tgTokenEl = document.getElementById("n_tg_token");
+    const tgChatEl = document.getElementById("n_tg_chat");
+    const webhookEl = document.getElementById("n_webhook");
+    const fileEl = document.getElementById("n_file");
+    const throttleEl = document.getElementById("n_throttle");
+    const hintEl = document.getElementById("n_hint");
+    if (tgTokenEl) tgTokenEl.value = j.telegram_bot_token ?? "";
+    if (tgChatEl) tgChatEl.value = j.telegram_chat_id ?? "";
+    if (webhookEl) webhookEl.value = j.webhook_url ?? "";
+    if (fileEl) fileEl.value = j.file_path ?? "ops/notify.log";
+    if (throttleEl) throttleEl.value = j.throttle_seconds ?? 86400;
+    if (hintEl) {
+      hintEl.textContent = "loaded";
+      hintEl.style.color = "#00ff88";
+    }
+    if (typeof toast !== 'undefined' && toast.success) {
+      toast.success("Notifier config loaded");
+    }
+  } catch (e) {
+    console.error('[loadNotifyConfig] Error:', e);
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error("Error loading notifier config: " + e.message);
+    }
+  }
+}
+window.loadNotifyConfig = loadNotifyConfig;
+
+async function saveNotifyConfig() {
+  try {
+    const db = q("db") || "acq.db";
+    const body = {
+      telegram_bot_token: document.getElementById("n_tg_token").value.trim(),
+      telegram_chat_id: document.getElementById("n_tg_chat").value.trim(),
+      webhook_url: document.getElementById("n_webhook").value.trim(),
+      file_path: document.getElementById("n_file").value.trim(),
+      throttle_seconds: Number(document.getElementById("n_throttle").value),
+    };
+    const j = await api("/api/notify/config?" + new URLSearchParams({db}).toString(), {method:"PUT", body: JSON.stringify(body)});
+    document.getElementById("n_hint").textContent = "saved";
+    document.getElementById("n_hint").style.color = "#00ff88";
+    const pre = document.createElement("pre");
+    pre.className = "text-xs font-mono";
+    pre.style.cssText = "color: #e0e0e8; white-space: pre-wrap; word-wrap: break-word;";
+    pre.textContent = JSON.stringify(j, null, 2);
+    document.getElementById("notify_report").innerHTML = "";
+    document.getElementById("notify_report").appendChild(pre);
+    toast.success("Notifier config saved");
+  } catch (e) {
+    toast.error("Error saving notifier config: " + e.message);
+  }
+}
+
+async function testNotify() {
+  const reportEl = document.getElementById("notify_report");
+  reportEl.innerHTML = '<div class="empty-state"><div class="spinner" style="margin: 0 auto;"></div><div class="empty-state-title mt-4">Testing notification...</div></div>';
+  try {
+    const db = q("db") || "acq.db";
+    const j = await api("/api/notify/test?" + new URLSearchParams({db}).toString(), {method:"POST"});
+    const pre = document.createElement("pre");
+    pre.className = "text-xs font-mono";
+    pre.style.cssText = "color: #e0e0e8; white-space: pre-wrap; word-wrap: break-word;";
+    pre.textContent = JSON.stringify(j, null, 2);
+    reportEl.innerHTML = "";
+    reportEl.appendChild(pre);
+    toast.success("Notification test sent");
+  } catch (e) {
+    reportEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Test failed</div><div class="empty-state-description">${e.message}</div></div>`;
+    toast.error("Notification test failed: " + e.message);
+  }
+}
+
+async function loadKpis() {
+  const kpisEl = document.getElementById("kpis");
+  if (!kpisEl) {
+    console.error('[loadKpis] KPIs element not found');
+    return;
+  }
+  kpisEl.innerHTML = '<div class="empty-state"><div class="spinner" style="margin: 0 auto;"></div><div class="empty-state-title mt-4">Loading KPIs...</div></div>';
+  try {
+    const db = (typeof q === 'function' ? q("db") : (document.getElementById("db")?.value || "acq.db")) || "acq.db";
+    const day_from = (document.getElementById("kpi_from")?.value || "").trim();
+    const day_to = (document.getElementById("kpi_to")?.value || "").trim();
+    const params = new URLSearchParams({db});
+    if (day_from) params.set("day_from", day_from);
+    if (day_to) params.set("day_to", day_to);
+    console.log('[loadKpis] Fetching KPIs data...');
+    const data = await (typeof api === 'function' ? api : window.api)("/api/stats/kpis?" + params.toString());
+    console.log('[loadKpis] KPIs data received');
+    // Store raw JSON in details element
+    const kpisRawEl = document.getElementById("kpis");
+    if (kpisRawEl) {
+      kpisRawEl.textContent = JSON.stringify(data, null, 2);
+    }
+    if (typeof renderKpis === 'function') {
+      renderKpis(data);
+    } else {
+      console.error('[loadKpis] renderKpis function not found');
+      return;
+    }
+    if (typeof toast !== 'undefined' && toast.success) {
+      toast.success("KPIs loaded");
+    }
+  } catch (e) {
+    console.error('[loadKpis] Error:', e);
+    kpisEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error loading KPIs</div><div class="empty-state-description">${e.message}</div></div>`;
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error("Error loading KPIs: " + e.message);
+    }
+  }
+}
+window.loadKpis = loadKpis;
+window.renderKpis = renderKpis;
+
+function renderRoas(data) {
+  console.log('[renderRoas] Starting render, data:', data);
+  const roasEl = document.getElementById("roas");
+  if (!roasEl) {
+    console.error('[renderRoas] ROAS element not found');
+    return;
+  }
+  console.log('[renderRoas] Clearing ROAS element');
+  roasEl.innerHTML = "";
+  
+  const total = data.total || {revenue: 0, spend: 0};
+  const totalRoas = total.spend > 0 ? (total.revenue / total.spend).toFixed(2) : null;
+  
+  // Summary cards
+  const summaryContainer = document.createElement("div");
+  summaryContainer.className = "grid grid-cols-1 md:grid-cols-3 gap-4 mb-6";
+  
+  const createSummaryCard = (label, value, subtitle = "", color = "#00ff88") => {
+    const card = document.createElement("div");
+    card.className = "rounded-lg border p-4";
+    card.style.cssText = `background: #1e1e2e; border-color: #2a2a3e;`;
+    card.innerHTML = `
+      <div class="text-xs mb-1" style="color: #8888a0;">${label}</div>
+      <div class="text-2xl font-bold mb-1" style="color: ${color};">${value}</div>
+      ${subtitle ? `<div class="text-xs" style="color: #8888a0;">${subtitle}</div>` : ""}
+    `;
+    return card;
+  };
+  
+  const roasColor = totalRoas ? (totalRoas >= 1.0 ? "#00ff88" : totalRoas >= 0.5 ? "#ffd700" : "#ff0040") : "#8888a0";
+  summaryContainer.appendChild(createSummaryCard("Total ROAS", totalRoas || "N/A", totalRoas ? (totalRoas >= 1.0 ? "Good" : totalRoas >= 0.5 ? "Fair" : "Poor") : "No data", roasColor));
+  summaryContainer.appendChild(createSummaryCard("Total Revenue", total.revenue.toFixed(2), "", "#00ff88"));
+  summaryContainer.appendChild(createSummaryCard("Total Spend", total.spend.toFixed(2), "", "#00f0ff"));
+  
+  roasEl.appendChild(summaryContainer);
+  
+  // ROAS by campaign table
+  if (data.by_campaign && data.by_campaign.length > 0) {
+    const tableSection = document.createElement("div");
+    tableSection.className = "mb-6";
+    tableSection.innerHTML = `<div class="text-sm font-bold mb-3" style="color: #00f0ff;">ROAS by Campaign</div>`;
+    
+    const tableContainer = document.createElement("div");
+    tableContainer.className = "overflow-x-auto";
+    
+    const table = document.createElement("table");
+    table.className = "w-full text-xs";
+    table.style.cssText = "border-collapse: collapse;";
+    
+    // Table header
+    const thead = document.createElement("thead");
+    thead.innerHTML = `
+      <tr style="border-bottom: 1px solid #2a2a3e;">
+        <th class="text-left p-2" style="color: #8888a0;">Campaign</th>
+        <th class="text-right p-2" style="color: #8888a0;">Revenue</th>
+        <th class="text-right p-2" style="color: #8888a0;">Spend</th>
+        <th class="text-right p-2" style="color: #8888a0;">ROAS</th>
+      </tr>
+    `;
+    table.appendChild(thead);
+    
+    // Table body
+    const tbody = document.createElement("tbody");
+    const campaigns = data.by_campaign.filter(c => c.spend > 0 || c.revenue > 0).sort((a, b) => {
+      // Sort by ROAS descending, then by revenue descending
+      const roasA = a.roas || 0;
+      const roasB = b.roas || 0;
+      if (roasA !== roasB) return roasB - roasA;
+      return b.revenue - a.revenue;
+    });
+    
+    campaigns.forEach((campaign, idx) => {
+      const row = document.createElement("tr");
+      row.style.cssText = "border-bottom: 1px solid #2a2a3e;";
+      if (idx % 2 === 0) {
+        row.style.background = "#151520";
+      }
+      
+      const roas = campaign.roas;
+      const roasDisplay = roas ? roas.toFixed(2) : "N/A";
+      const roasColor = roas ? (roas >= 1.0 ? "#00ff88" : roas >= 0.5 ? "#ffd700" : "#ff0040") : "#8888a0";
+      
+      row.innerHTML = `
+        <td class="p-2 text-xs" style="color: #e0e0e8;">${campaign.utm_campaign || "(no campaign)"}</td>
+        <td class="p-2 text-right text-sm font-bold" style="color: #00ff88;">${campaign.revenue.toFixed(2)}</td>
+        <td class="p-2 text-right text-sm" style="color: #e0e0e8;">${campaign.spend.toFixed(2)}</td>
+        <td class="p-2 text-right text-sm font-bold" style="color: ${roasColor};">${roasDisplay}</td>
+      `;
+      tbody.appendChild(row);
+    });
+    
+    table.appendChild(tbody);
+    tableContainer.appendChild(table);
+    tableSection.appendChild(tableContainer);
+    roasEl.appendChild(tableSection);
+    
+    // Chart: ROAS by campaign (bar chart)
+    if (campaigns.length > 0 && typeof Chart !== "undefined") {
+      const chartSection = document.createElement("div");
+      chartSection.className = "mb-4";
+      chartSection.innerHTML = `<div class="text-sm font-bold mb-3" style="color: #00f0ff;">ROAS by Campaign (Chart)</div>`;
+      
+      const chartContainer = document.createElement("div");
+      chartContainer.style.cssText = "position: relative; height: 300px; background: #151520; padding: 16px; border-radius: 8px; border: 1px solid #2a2a3e;";
+      
+      const canvas = document.createElement("canvas");
+      chartContainer.appendChild(canvas);
+      chartSection.appendChild(chartContainer);
+      roasEl.appendChild(chartSection);
+      
+      // Create chart
+      const ctx = canvas.getContext("2d");
+      const topCampaigns = campaigns.slice(0, 10); // Top 10 campaigns
+      
+      new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: topCampaigns.map(c => (c.utm_campaign || "(no campaign)").substring(0, 20)),
+          datasets: [{
+            label: "ROAS",
+            data: topCampaigns.map(c => c.roas || 0),
+            backgroundColor: topCampaigns.map(c => {
+              const roas = c.roas || 0;
+              return roas >= 1.0 ? "rgba(0, 255, 136, 0.6)" : roas >= 0.5 ? "rgba(255, 215, 0, 0.6)" : "rgba(255, 0, 64, 0.6)";
+            }),
+            borderColor: topCampaigns.map(c => {
+              const roas = c.roas || 0;
+              return roas >= 1.0 ? "#00ff88" : roas >= 0.5 ? "#ffd700" : "#ff0040";
+            }),
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: "#1e1e2e",
+              titleColor: "#e0e0e8",
+              bodyColor: "#e0e0e8",
+              borderColor: "#2a2a3e",
+              borderWidth: 1
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { color: "#8888a0" },
+              grid: { color: "#2a2a3e" }
+            },
+            x: {
+              ticks: { color: "#8888a0", maxRotation: 45, minRotation: 45 },
+              grid: { display: false }
+            }
+          }
+        }
+      });
+    }
+  }
+  
+  // Show empty state only if there's truly no data (no campaigns, no source data, and totals are zero)
+  if ((!data.by_campaign || data.by_campaign.length === 0) && 
+      (!data.by_source || data.by_source.length === 0) &&
+      total.revenue === 0 && total.spend === 0) {
+    roasEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-title">No ROAS data</div><div class="empty-state-description">Import ad spend and mark leads as booked to see ROAS calculations</div></div>';
+  }
+  
+  console.log('[renderRoas] Render completed. Element innerHTML length:', roasEl.innerHTML.length);
+  console.log('[renderRoas] Element dimensions:', {width: roasEl.offsetWidth, height: roasEl.offsetHeight});
+  console.log('[renderRoas] Parent element:', roasEl.parentElement?.id, roasEl.parentElement?.className);
+  console.log('[renderRoas] Parent dimensions:', roasEl.parentElement ? {width: roasEl.parentElement.offsetWidth, height: roasEl.parentElement.offsetHeight} : 'no parent');
+  
+  // Force a reflow to ensure dimensions are calculated
+  void roasEl.offsetHeight;
+  
+  // Verify content is still there after a short delay
+  setTimeout(() => {
+    console.log('[renderRoas] After 500ms - innerHTML length:', roasEl.innerHTML.length);
+    console.log('[renderRoas] After 500ms - dimensions:', {width: roasEl.offsetWidth, height: roasEl.offsetHeight});
+    if (roasEl.innerHTML.length === 0) {
+      console.error('[renderRoas] WARNING: Content was cleared after rendering!');
+    }
+    if (roasEl.offsetWidth === 0 || roasEl.offsetHeight === 0) {
+      console.error('[renderRoas] WARNING: Element has no dimensions! Parent:', roasEl.parentElement?.id);
+    }
+  }, 500);
+}
+window.renderRoas = renderRoas;
+
+async function loadRoas() {
+  const roasEl = document.getElementById("roas");
+  if (!roasEl) {
+    console.error('[loadRoas] ROAS element not found');
+    return;
+  }
+  roasEl.innerHTML = '<div class="empty-state"><div class="spinner" style="margin: 0 auto;"></div><div class="empty-state-title mt-4">Loading ROAS...</div></div>';
+  try {
+    const db = (typeof q === 'function' ? q("db") : (document.getElementById("db")?.value || "acq.db")) || "acq.db";
+    const params = new URLSearchParams({db});
+    console.log('[loadRoas] Fetching ROAS data...');
+    const data = await (typeof api === 'function' ? api : window.api)("/api/stats/roas?" + params.toString());
+    console.log('[loadRoas] ROAS data received:', data);
+    const renderFn = window.renderRoas || renderRoas;
+    if (typeof renderFn === 'function') {
+      console.log('[loadRoas] Calling renderRoas with data:', data);
+      renderFn(data);
+      console.log('[loadRoas] renderRoas completed');
+    } else {
+      console.error('[loadRoas] renderRoas function not found. typeof renderRoas:', typeof renderRoas, 'typeof window.renderRoas:', typeof window.renderRoas);
+      roasEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error</div><div class="empty-state-description">renderRoas function not available</div></div>';
+      return;
+    }
+    if (typeof toast !== 'undefined' && toast.success) {
+      toast.success("ROAS data loaded");
+    }
+  } catch (e) {
+    console.error('[loadRoas] Error:', e);
+    roasEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error loading ROAS</div><div class="empty-state-description">${e.message}</div></div>`;
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error("Error loading ROAS: " + e.message);
+    }
+  }
+}
+// Make globally available immediately
+window.loadRoas = loadRoas;
+
+async function importSpend() {
+  const db = q("db") || "acq.db";
+  const el = document.getElementById("spend_json");
+  const out = document.getElementById("spend_result");
+  out.textContent = "";
+  let items = [];
+  try {
+    items = JSON.parse(el.value || "[]");
+    if (!Array.isArray(items)) throw new Error("JSON must be an array");
+  } catch (e) {
+    out.textContent = "parse error: " + String(e);
+    toast.error("Parse error: " + String(e));
+    return;
+  }
+  try {
+    const params = new URLSearchParams({db});
+    const r = await api("/api/spend/import?" + params.toString(), {
+      method: "POST",
+      headers: {"content-type": "application/json"},
+      body: JSON.stringify({items})
+    });
+    const imported = r.imported || 0;
+    const errors = (r.errors||[]).length;
+    out.textContent = `imported=${imported} errors=${errors}`;
+    if (imported > 0) {
+      toast.success(`Imported ${imported} spend entry/entries`);
+    }
+    if (errors > 0) {
+      toast.warning(`${errors} error(s) during import`);
+    }
+    await loadSpend();
+    await loadRoas();
+  } catch (e) {
+    toast.error("Import error: " + e.message);
+    out.textContent = "error: " + String(e);
+  }
+}
+
+function renderRevenue(statsData, bookings) {
+  console.log('[renderRevenue] Starting render, statsData:', statsData, 'bookings:', bookings);
+  const revenueEl = document.getElementById("revenue");
+  if (!revenueEl) {
+    console.error('[renderRevenue] Revenue element not found');
+    return;
+  }
+  console.log('[renderRevenue] Clearing revenue element');
+  revenueEl.innerHTML = "";
+  
+  // Summary cards
+  const summaryContainer = document.createElement("div");
+  summaryContainer.className = "grid grid-cols-1 md:grid-cols-3 gap-4 mb-6";
+  
+  const total = statsData.total || {count: 0, value: 0};
+  const aov = total.count > 0 ? (total.value / total.count).toFixed(2) : 0;
+  
+  const createSummaryCard = (label, value, subtitle = "", color = "#00ff88") => {
+    const card = document.createElement("div");
+    card.className = "rounded-lg border p-4";
+    card.style.cssText = `background: #1e1e2e; border-color: #2a2a3e;`;
+    card.innerHTML = `
+      <div class="text-xs mb-1" style="color: #8888a0;">${label}</div>
+      <div class="text-2xl font-bold mb-1" style="color: ${color};">${value}</div>
+      ${subtitle ? `<div class="text-xs" style="color: #8888a0;">${subtitle}</div>` : ""}
+    `;
+    return card;
+  };
+  
+  summaryContainer.appendChild(createSummaryCard("Total Revenue", total.value.toFixed(2), "", "#00ff88"));
+  summaryContainer.appendChild(createSummaryCard("Bookings", total.count, "Total bookings", "#00f0ff"));
+  summaryContainer.appendChild(createSummaryCard("Average Order Value", aov, "", "#ffd700"));
+  
+  revenueEl.appendChild(summaryContainer);
+  
+  // Revenue by source
+  if (statsData.by_source && statsData.by_source.length > 0) {
+    const sourceSection = document.createElement("div");
+    sourceSection.className = "mb-6";
+    sourceSection.innerHTML = `<div class="text-sm font-bold mb-3" style="color: #00f0ff;">Revenue by Source</div>`;
+    
+    const sourceList = document.createElement("div");
+    sourceList.className = "space-y-2";
+    statsData.by_source.forEach(item => {
+      const itemDiv = document.createElement("div");
+      itemDiv.className = "flex items-center justify-between p-2 rounded border";
+      itemDiv.style.cssText = "background: #1e1e2e; border-color: #2a2a3e;";
+      itemDiv.innerHTML = `
+        <span class="text-xs" style="color: #e0e0e8;">${item.source || "unknown"}</span>
+        <div class="text-right">
+          <div class="text-sm font-bold" style="color: #00ff88;">${item.value.toFixed(2)}</div>
+          <div class="text-xs" style="color: #8888a0;">${item.count} bookings</div>
+        </div>
+      `;
+      sourceList.appendChild(itemDiv);
+    });
+    sourceSection.appendChild(sourceList);
+    revenueEl.appendChild(sourceSection);
+  }
+  
+  // Bookings table
+  if (bookings && bookings.length > 0) {
+    const tableSection = document.createElement("div");
+    tableSection.className = "mb-4";
+    tableSection.innerHTML = `<div class="text-sm font-bold mb-3" style="color: #00f0ff;">Recent Bookings</div>`;
+    
+    const tableContainer = document.createElement("div");
+    tableContainer.className = "overflow-x-auto";
+    
+    const table = document.createElement("table");
+    table.className = "w-full text-xs";
+    table.style.cssText = "border-collapse: collapse;";
+    
+    // Table header
+    const thead = document.createElement("thead");
+    thead.innerHTML = `
+      <tr style="border-bottom: 1px solid #2a2a3e;">
+        <th class="text-left p-2" style="color: #8888a0;">Lead ID</th>
+        <th class="text-left p-2" style="color: #8888a0;">Value</th>
+        <th class="text-left p-2" style="color: #8888a0;">Currency</th>
+        <th class="text-left p-2" style="color: #8888a0;">Status</th>
+        <th class="text-left p-2" style="color: #8888a0;">Campaign</th>
+        <th class="text-left p-2" style="color: #8888a0;">Date</th>
+      </tr>
+    `;
+    table.appendChild(thead);
+    
+    // Table body
+    const tbody = document.createElement("tbody");
+    bookings.slice(0, 50).forEach((booking, idx) => {
+      const row = document.createElement("tr");
+      row.style.cssText = "border-bottom: 1px solid #2a2a3e;";
+      if (idx % 2 === 0) {
+        row.style.background = "#151520";
+      }
+      
+      const date = booking.ts ? new Date(booking.ts).toLocaleDateString() : "-";
+      row.innerHTML = `
+        <td class="p-2 font-mono text-xs" style="color: #00f0ff;">#${booking.lead_id}</td>
+        <td class="p-2 text-sm font-bold" style="color: #00ff88;">${booking.booking_value || 0}</td>
+        <td class="p-2 text-xs" style="color: #e0e0e8;">${booking.booking_currency || "THB"}</td>
+        <td class="p-2">${badge(booking.booking_status || "none")}</td>
+        <td class="p-2 text-xs" style="color: #e0e0e8;">${booking.utm_campaign || "-"}</td>
+        <td class="p-2 text-xs font-mono" style="color: #8888a0;">${date}</td>
+      `;
+      tbody.appendChild(row);
+    });
+    
+    table.appendChild(tbody);
+    tableContainer.appendChild(table);
+    tableSection.appendChild(tableContainer);
+    revenueEl.appendChild(tableSection);
+  }
+  
+  // Show empty state only if there's truly no data
+  if (total.count === 0 && (!bookings || bookings.length === 0) && 
+      (!statsData.by_source || statsData.by_source.length === 0)) {
+    revenueEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💰</div><div class="empty-state-title">No revenue data</div><div class="empty-state-description">Mark leads as booked with values to see revenue here</div></div>';
+  }
+  
+  console.log('[renderRevenue] Render completed. Element innerHTML length:', revenueEl.innerHTML.length);
+  console.log('[renderRevenue] Element dimensions:', {width: revenueEl.offsetWidth, height: revenueEl.offsetHeight});
+  console.log('[renderRevenue] Parent element:', revenueEl.parentElement?.id, revenueEl.parentElement?.className);
+  console.log('[renderRevenue] Parent dimensions:', revenueEl.parentElement ? {width: revenueEl.parentElement.offsetWidth, height: revenueEl.parentElement.offsetHeight} : 'no parent');
+  
+  // Force a reflow to ensure dimensions are calculated
+  void revenueEl.offsetHeight;
+  
+  // Verify content is still there after a short delay
+  setTimeout(() => {
+    console.log('[renderRevenue] After 500ms - innerHTML length:', revenueEl.innerHTML.length);
+    console.log('[renderRevenue] After 500ms - dimensions:', {width: revenueEl.offsetWidth, height: revenueEl.offsetHeight});
+    if (revenueEl.innerHTML.length === 0) {
+      console.error('[renderRevenue] WARNING: Content was cleared after rendering!');
+    }
+    if (revenueEl.offsetWidth === 0 || revenueEl.offsetHeight === 0) {
+      console.error('[renderRevenue] WARNING: Element has no dimensions! Parent:', revenueEl.parentElement?.id);
+    }
+  }, 500);
+}
+window.renderRevenue = renderRevenue;
+
+async function loadRevenue() {
+  const revenueEl = document.getElementById("revenue");
+  if (!revenueEl) {
+    console.error('[loadRevenue] Revenue element not found');
+    return;
+  }
+  revenueEl.innerHTML = '<div class="empty-state"><div class="spinner" style="margin: 0 auto;"></div><div class="empty-state-title mt-4">Loading revenue...</div></div>';
+  try {
+    const db = (typeof q === 'function' ? q("db") : (document.getElementById("db")?.value || "acq.db")) || "acq.db";
+    const params = new URLSearchParams({db});
+    
+    console.log('[loadRevenue] Fetching revenue stats...');
+    // Fetch revenue stats
+    const statsData = await (typeof api === 'function' ? api : window.api)("/api/stats/revenue?" + params.toString());
+    console.log('[loadRevenue] Revenue stats received:', statsData);
+    
+    // Fetch bookings (leads with booking_status booked/paid)
+    const leadsParams = new URLSearchParams({db, limit: "200"});
+    const leadsData = await (typeof api === 'function' ? api : window.api)("/api/leads?" + leadsParams.toString());
+    const bookings = (leadsData.items || []).filter(l => 
+      l.booking_status && ["booked", "paid", "confirmed", "completed"].includes(l.booking_status) && l.booking_value
+    );
+    
+    const renderFn = window.renderRevenue || renderRevenue;
+    if (typeof renderFn === 'function') {
+      console.log('[loadRevenue] Calling renderRevenue with data:', statsData, bookings);
+      renderFn(statsData, bookings);
+      console.log('[loadRevenue] renderRevenue completed');
+    } else {
+      console.error('[loadRevenue] renderRevenue function not found. typeof renderRevenue:', typeof renderRevenue, 'typeof window.renderRevenue:', typeof window.renderRevenue);
+      revenueEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error</div><div class="empty-state-description">renderRevenue function not available</div></div>';
+      return;
+    }
+    
+    if (typeof toast !== 'undefined' && toast.success) {
+      toast.success("Revenue data loaded");
+    }
+  } catch (e) {
+    console.error('[loadRevenue] Error:', e);
+    revenueEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error loading revenue</div><div class="empty-state-description">${e.message}</div></div>`;
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error("Error loading revenue: " + e.message);
+    }
+  }
+}
+// Make globally available
+window.loadRevenue = loadRevenue;
+
+async function updateLeadOutcome(leadId, patch) {
+  try {
+    const db = q("db") || "acq.db";
+    const params = new URLSearchParams({db});
+    const r = await api(`/api/leads/${leadId}/outcome?` + params.toString(), {
+      method: "POST",
+      headers: {"content-type": "application/json"},
+      body: JSON.stringify(patch || {})
+    });
+    // refresh leads + revenue after update
+    await loadLeads();
+    await loadRevenue();
+    toast.success("Lead outcome updated");
+    return r;
+  } catch (e) {
+    toast.error("Error updating lead outcome: " + e.message);
+    throw e;
+  }
+}
+
+function renderLeads(items) {
+  const el = document.getElementById("leads");
+  if (!el) {
+    console.error('[renderLeads] Leads element not found');
+    return;
+  }
+  if (!items || !items.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">👥</div><div class="empty-state-title">No leads found</div><div class="empty-state-description">Leads will appear here when submitted</div></div>';
+    return;
+  }
+  el.innerHTML = "";
+  for (const it of items) {
+    const row = document.createElement("div");
+    row.className = "card mb-3";
+    row.style.cssText = "padding: 16px; border-color: #2a2a3e;";
+    const id = it.lead_id;
+    const status = it.status || "new";
+    const bs = it.booking_status || "none";
+    const bv = (it.booking_value === null || it.booking_value === undefined) ? "" : String(it.booking_value);
+    const cur = it.booking_currency || "THB";
+    const title = document.createElement("div");
+    title.className = "flex flex-wrap items-center justify-between gap-2 mb-2";
+    title.innerHTML = `<div class="font-mono text-sm font-bold" style="color: #00f0ff;">#${id}</div>
+      <div class="text-xs" style="color: #8888a0;">${it.source || "unknown"} · ${it.utm_campaign || ""}</div>`;
+    row.appendChild(title);
+
+    const meta = document.createElement("div");
+    meta.className = "mb-3 text-xs";
+    meta.style.color = "#e0e0e8";
+    meta.innerHTML = `<div class="mb-1"><span style="color: #8888a0;">status</span> ${badge(status)} · <span style="color: #8888a0;">booking</span> ${badge(bs)} ${bv ? ("· <span style='color: #00ff88; font-weight: 600;'>" + bv + " " + cur + "</span>") : ""}</div>
+      <div class="mt-2" style="color: #8888a0;">${(it.name || "")} ${(it.phone || "")} ${(it.email || "")}</div>
+      <div class="mt-2" style="color: #e0e0e8;">${(it.message || "").replaceAll("<","&lt;").replaceAll(">","&gt;")}</div>`;
+    row.appendChild(meta);
+
+    const controls = document.createElement("div");
+    controls.className = "flex flex-wrap items-center gap-2";
+
+    const valueInput = document.createElement("input");
+    valueInput.className = "px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono";
+    valueInput.style.cssText = "border-color: #2a2a3e; color: #e0e0e8; width: 110px;";
+    valueInput.placeholder = "value";
+    valueInput.value = bv;
+
+    const curInput = document.createElement("input");
+    curInput.className = "px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono";
+    curInput.style.cssText = "border-color: #2a2a3e; color: #e0e0e8; width: 70px;";
+    curInput.placeholder = "cur";
+    curInput.value = cur;
+
+    const bBooked = document.createElement("button");
+    bBooked.className = "btn btn-success";
+    bBooked.style.cssText = "padding: 6px 12px; font-size: 12px;";
+    bBooked.textContent = "✓ booked";
+    bBooked.onclick = () => updateLeadOutcome(id, {
+      booking_status: "booked",
+      booking_value: valueInput.value ? Number(valueInput.value) : null,
+      booking_currency: curInput.value || "THB"
+    });
+
+    const bPaid = document.createElement("button");
+    bPaid.className = "btn btn-success";
+    bPaid.style.cssText = "padding: 6px 12px; font-size: 12px;";
+    bPaid.textContent = "💰 paid";
+    bPaid.onclick = () => updateLeadOutcome(id, {
+      booking_status: "paid",
+      booking_value: valueInput.value ? Number(valueInput.value) : null,
+      booking_currency: curInput.value || "THB"
+    });
+
+    const bLost = document.createElement("button");
+    bLost.className = "btn btn-danger";
+    bLost.style.cssText = "padding: 6px 12px; font-size: 12px;";
+    bLost.textContent = "✗ lost";
+    bLost.onclick = () => updateLeadOutcome(id, {booking_status: "lost", status: "lost"});
+
+    controls.appendChild(valueInput);
+    controls.appendChild(curInput);
+    controls.appendChild(bBooked);
+    controls.appendChild(bPaid);
+    controls.appendChild(bLost);
+    row.appendChild(controls);
+
+    el.appendChild(row);
+  }
+}
+window.renderLeads = renderLeads;
+
+async function loadLeads() {
+  const leadsEl = document.getElementById("leads");
+  if (!leadsEl) {
+    console.error('[loadLeads] Leads element not found');
+    return;
+  }
+  leadsEl.innerHTML = '<div class="empty-state"><div class="spinner" style="margin: 0 auto;"></div><div class="empty-state-title mt-4">Loading leads...</div></div>';
+  try {
+    const db = (typeof q === 'function' ? q("db") : (document.getElementById("db")?.value || "acq.db")) || "acq.db";
+    const params = new URLSearchParams({db, limit: "200"});
+    console.log('[loadLeads] Fetching leads data...');
+    const data = await (typeof api === 'function' ? api : window.api)("/api/leads?" + params.toString());
+    console.log('[loadLeads] Leads data received, count:', (data.items || []).length);
+    if (typeof renderLeads === 'function') {
+      renderLeads(data.items || []);
+    } else {
+      console.error('[loadLeads] renderLeads function not found');
+      leadsEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error</div><div class="empty-state-description">renderLeads function not available</div></div>';
+      return;
+    }
+    const count = (data.items || []).length;
+    if (typeof toast !== 'undefined') {
+      if (count > 0) {
+        toast.success(`Loaded ${count} lead(s)`);
+      } else {
+        toast.info("No leads found");
+      }
+    }
+  } catch (e) {
+    console.error('[loadLeads] Error:', e);
+    leadsEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error loading leads</div><div class="empty-state-description">${e.message}</div></div>`;
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error("Error loading leads: " + e.message);
+    }
+  }
+}
+// Make globally available
+window.loadLeads = loadLeads;
+
+async function loadMoneyBoard() {
+  const boardEl = document.getElementById("money-board");
+  if (!boardEl) {
+    console.error('[loadMoneyBoard] Money board element not found');
+    return;
+  }
+  boardEl.innerHTML = '<div class="empty-state"><div class="spinner" style="margin: 0 auto;"></div><div class="empty-state-title mt-4">Loading money board...</div></div>';
+  try {
+    const db = (typeof q === 'function' ? q("db") : (document.getElementById("db")?.value || "acq.db")) || "acq.db";
+    const params = new URLSearchParams({db});
+    console.log('[loadMoneyBoard] Fetching money board data...');
+    const data = await (typeof api === 'function' ? api : window.api)("/api/money-board?" + params.toString());
+    console.log('[loadMoneyBoard] Money board data received, columns:', data.columns?.length || 0);
+    if (typeof renderMoneyBoard === 'function') {
+      renderMoneyBoard(data);
+    } else {
+      console.error('[loadMoneyBoard] renderMoneyBoard function not found');
+      boardEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error</div><div class="empty-state-description">renderMoneyBoard function not available</div></div>';
+      return;
+    }
+    const totalItems = (data.columns || []).reduce((sum, col) => sum + (col.items?.length || 0), 0);
+    if (typeof toast !== 'undefined') {
+      if (totalItems > 0) {
+        toast.success(`Loaded ${totalItems} item(s) across ${data.columns?.length || 0} column(s)`);
+      } else {
+        toast.info("No items in money board");
+      }
+    }
+  } catch (e) {
+    console.error('[loadMoneyBoard] Error:', e);
+    boardEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error loading money board</div><div class="empty-state-description">${e.message}</div></div>`;
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error("Error loading money board: " + e.message);
+    }
+  }
+}
+window.loadMoneyBoard = loadMoneyBoard;
+
+function renderMoneyBoard(data) {
+  const boardEl = document.getElementById("money-board");
+  if (!boardEl) return;
+  
+  const columns = data.columns || [];
+  if (columns.length === 0 || columns.every(col => !col.items || col.items.length === 0)) {
+    boardEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon" style="font-size: 64px; opacity: 0.6;">💰</div><div class="empty-state-title" style="font-size: 18px; margin-bottom: 12px;">No items in money board</div><div class="empty-state-description" style="font-size: 14px;">Create leads and booking requests to see them here</div></div>';
+    return;
+  }
+  
+  // Kanban board layout
+  let html = '<div class="flex gap-4 overflow-x-auto pb-4" style="min-height: 400px;">';
+  
+  columns.forEach(column => {
+    const status = column.status || "unknown";
+    const count = column.count || 0;
+    const items = column.items || [];
+    
+    // Column header colors
+    const statusColors = {
+      "new": "#00f0ff",
+      "package_selected": "#ffd700",
+      "time_window_set": "#ff8800",
+      "deposit_requested": "#ff0040",
+      "confirmed": "#00ff88",
+      "complete": "#00ff88",
+      "closed": "#8888a0",
+    };
+    const color = statusColors[status] || "#8888a0";
+    
+    html += `
+      <div class="flex-shrink-0 w-64 rounded-lg border p-3" style="background: #1e1e2e; border-color: #2a2a3e;">
+        <div class="mb-3 pb-2 border-b" style="border-color: #2a2a3e;">
+          <div class="text-xs font-bold mb-1" style="color: ${color}; text-transform: uppercase;">${status.replace(/_/g, ' ')}</div>
+          <div class="text-xs" style="color: #8888a0;">${count} item(s)</div>
+        </div>
+        <div class="space-y-2" style="max-height: 600px; overflow-y: auto;">
+    `;
+    
+    if (items.length === 0) {
+      html += '<div class="text-xs text-center py-4" style="color: #555566;">No items</div>';
+    } else {
+        items.forEach(item => {
+          const leadName = item.lead_name || "Unknown";
+          const leadPhone = item.lead_phone || "";
+          const packageName = item.package_name || item.package_id || "—";
+          const amount = item.amount || item.package_price || 0;
+          const preferredWindow = item.preferred_window || "";
+          const requestId = item.request_id || "";
+          const leadId = item.lead_id;
+          
+          // Determine action buttons based on status
+          let actionButtons = "";
+          if (status === "new") {
+            actionButtons = `<button onclick="sendPackageMenu(${leadId})" class="mt-2 px-2 py-1 text-xs rounded border transition-colors" style="background: #00f0ff20; border-color: #00f0ff40; color: #00f0ff; width: 100%;">Send Menu</button>`;
+          } else if (status === "package_selected") {
+            actionButtons = `<button onclick="setTimeWindow('${requestId}')" class="mt-2 px-2 py-1 text-xs rounded border transition-colors" style="background: #ffd70020; border-color: #ffd70040; color: #ffd700; width: 100%;">Set Time</button>`;
+          } else if (status === "time_window_set") {
+            actionButtons = `<button onclick="requestDeposit('${requestId}')" class="mt-2 px-2 py-1 text-xs rounded border transition-colors" style="background: #ff004020; border-color: #ff004040; color: #ff0040; width: 100%;">Request Deposit</button>`;
+          } else if (status === "deposit_requested") {
+            actionButtons = `<button onclick="markPaid('${requestId}')" class="mt-2 px-2 py-1 text-xs rounded border transition-colors" style="background: #00ff8820; border-color: #00ff8840; color: #00ff88; width: 100%;">Mark Paid</button>`;
+          } else if (status === "confirmed") {
+            actionButtons = `<button onclick="markCompleted('${requestId}')" class="mt-2 px-2 py-1 text-xs rounded border transition-colors" style="background: #00ff8820; border-color: #00ff8840; color: #00ff88; width: 100%;">Mark Complete</button>`;
+          } else if (status === "complete") {
+            actionButtons = `<button onclick="closeBooking('${requestId}')" class="mt-2 px-2 py-1 text-xs rounded border transition-colors" style="background: #8888a020; border-color: #8888a040; color: #8888a0; width: 100%;">Close</button>`;
+          }
+          
+          html += `
+            <div class="p-3 rounded border" 
+                 style="background: #151520; border-color: #2a2a3e;">
+              <div class="cursor-pointer" onclick="viewMoneyBoardItem(${item.lead_id}, '${requestId}')">
+                <div class="text-xs font-semibold mb-1" style="color: #00f0ff;">${leadName}</div>
+                <div class="text-xs mb-1" style="color: #e0e0e8;">${leadPhone}</div>
+                <div class="text-xs mb-1" style="color: #8888a0;">${packageName}</div>
+                ${amount > 0 ? `<div class="text-xs font-bold mt-2" style="color: #00ff88;">฿${amount.toFixed(0)}</div>` : ""}
+                ${preferredWindow ? `<div class="text-xs mt-1" style="color: #ffd700;">⏰ ${preferredWindow}</div>` : ""}
+              </div>
+              ${actionButtons}
+            </div>
+          `;
+        });
+    }
+    
+    html += `
+        </div>
+      </div>
+    `;
+  });
+  
+  html += '</div>';
+  boardEl.innerHTML = html;
+}
+window.renderMoneyBoard = renderMoneyBoard;
+
+function viewMoneyBoardItem(leadId, requestId) {
+  // Navigate to leads section and highlight the lead
+  navigateToSection('leads-section');
+  setTimeout(() => {
+    loadLeads();
+    // Could scroll to specific lead if needed
+  }, 500);
+}
+
+async function sendPackageMenu(leadId) {
+  try {
+    const db = q("db") || "acq.db";
+    const result = await api(`/api/money-board/${leadId}/send-package-menu?db=${db}`, {method: "POST"});
+    toast.success("Package menu sent");
+    await loadMoneyBoard();
+  } catch (e) {
+    toast.error("Error sending package menu: " + e.message);
+  }
+}
+
+async function setTimeWindow(requestId) {
+  const window = prompt("Enter preferred time window (morning/afternoon/evening):");
+  if (!window) return;
+  try {
+    const db = q("db") || "acq.db";
+    const result = await api(`/api/money-board/${requestId}/set-time-window?db=${db}`, {
+      method: "POST",
+      body: JSON.stringify({preferred_window: window}),
+    });
+    toast.success("Time window set");
+    await loadMoneyBoard();
+  } catch (e) {
+    toast.error("Error setting time window: " + e.message);
+  }
+}
+
+async function requestDeposit(requestId) {
+  const amount = prompt("Enter deposit amount:");
+  if (!amount) return;
+  const method = prompt("Enter payment method (promptpay/stripe/bank):") || "promptpay";
+  const paymentLink = prompt("Enter payment link (optional):") || "";
+  try {
+    const db = q("db") || "acq.db";
+    const result = await api(`/api/money-board/${requestId}/request-deposit?db=${db}`, {
+      method: "POST",
+      body: JSON.stringify({amount: parseFloat(amount), method, payment_link: paymentLink}),
+    });
+    toast.success("Deposit requested");
+    await loadMoneyBoard();
+  } catch (e) {
+    toast.error("Error requesting deposit: " + e.message);
+  }
+}
+
+async function markPaid(requestId) {
+  // Find payment intent for this booking
+  try {
+    const db = q("db") || "acq.db";
+    // Get booking to find payment intent
+    const booking = await api(`/api/booking-requests/${requestId}?db=${db}`);
+    // For now, use requestId as intentId prefix - in production, get actual intent_id
+    const intentId = prompt("Enter payment intent ID:") || `pi_${requestId}`;
+    const result = await api(`/api/money-board/${intentId}/mark-paid?db=${db}`, {method: "POST"});
+    toast.success("Payment marked as paid");
+    await loadMoneyBoard();
+  } catch (e) {
+    toast.error("Error marking payment: " + e.message);
+  }
+}
+
+async function markCompleted(requestId) {
+  try {
+    const db = q("db") || "acq.db";
+    const result = await api(`/api/money-board/${requestId}/mark-completed?db=${db}`, {method: "POST"});
+    toast.success("Booking marked as completed");
+    await loadMoneyBoard();
+  } catch (e) {
+    toast.error("Error marking completed: " + e.message);
+  }
+}
+
+async function closeBooking(requestId) {
+  try {
+    const db = q("db") || "acq.db";
+    const result = await api(`/api/money-board/${requestId}/close?db=${db}`, {method: "POST"});
+    toast.success("Booking closed");
+    await loadMoneyBoard();
+  } catch (e) {
+    toast.error("Error closing booking: " + e.message);
+  }
+}
+
+window.sendPackageMenu = sendPackageMenu;
+window.setTimeWindow = setTimeWindow;
+window.requestDeposit = requestDeposit;
+window.markPaid = markPaid;
+window.markCompleted = markCompleted;
+window.closeBooking = closeBooking;
+
+function renderActivityList(items) {
+  const activityEl = document.getElementById("activity");
+  
+  if (!items || items.length === 0) {
+    activityEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">No activity found</div><div class="empty-state-description">Activity will appear here as operations are performed</div></div>';
+    return;
+  }
+  
+  activityEl.innerHTML = "";
+  
+  // Group by date
+  const groupedByDate = {};
+  items.forEach(item => {
+    const date = item.ts ? new Date(item.ts).toLocaleDateString() : "Unknown";
+    if (!groupedByDate[date]) {
+      groupedByDate[date] = [];
+    }
+    groupedByDate[date].push(item);
+  });
+  
+  // Sort dates (most recent first)
+  const sortedDates = Object.keys(groupedByDate).sort((a, b) => {
+    return new Date(b) - new Date(a);
+  });
+  
+  sortedDates.forEach(date => {
+    // Date header
+    const dateHeader = document.createElement("div");
+    dateHeader.className = "mb-3 mt-4 first:mt-0";
+    dateHeader.style.cssText = "border-bottom: 1px solid #2a2a3e; padding-bottom: 8px;";
+    dateHeader.innerHTML = `<div class="text-sm font-bold" style="color: #00f0ff;">${date}</div>`;
+    activityEl.appendChild(dateHeader);
+    
+    // Activity items for this date
+    groupedByDate[date].forEach(item => {
+      const itemDiv = document.createElement("div");
+      itemDiv.className = "mb-2 p-3 rounded-lg border";
+      itemDiv.style.cssText = "background: #1e1e2e; border-color: #2a2a3e;";
+      
+      const time = item.ts ? new Date(item.ts).toLocaleTimeString() : "-";
+      const action = item.action || item.type || "unknown";
+      const user = item.user || item.actor || "-";
+      const details = item.message || item.detail || JSON.stringify(item).substring(0, 100);
+      
+      itemDiv.innerHTML = `
+        <div class="flex flex-wrap items-start gap-2">
+          <span class="text-xs font-mono" style="color: #8888a0; min-width: 80px;">${time}</span>
+          <span class="px-2 py-1 rounded text-xs" style="background: #151520; color: #00ff88;">${action}</span>
+          <span class="text-xs" style="color: #8888a0;">${user}</span>
+          <span class="text-xs flex-1" style="color: #e0e0e8;">${details}</span>
+        </div>
+      `;
+      
+      activityEl.appendChild(itemDiv);
+    });
+  });
+}
+
+async function loadActivity() {
+  const activityEl = document.getElementById("activity");
+  if (!activityEl) {
+    console.error('[loadActivity] Activity element not found');
+    return;
+  }
+  activityEl.innerHTML = '<div class="empty-state"><div class="spinner" style="margin: 0 auto;"></div><div class="empty-state-title mt-4">Loading activity...</div></div>';
+  try {
+    const db = (typeof q === 'function' ? q("db") : (document.getElementById("db")?.value || "acq.db")) || "acq.db";
+    const params = new URLSearchParams({db, limit: "200"});
+    console.log('[loadActivity] Fetching activity data...');
+    const response = await (typeof api === 'function' ? api : window.api)("/api/activity?" + params.toString());
+    const items = response.items || response; // Handle both {items: [...]} and [...] formats
+    const activityItems = Array.isArray(items) ? items : (response.items || []);
+    console.log('[loadActivity] Activity data received, count:', activityItems.length);
+    if (typeof renderActivityList === 'function') {
+      renderActivityList(activityItems);
+    } else {
+      console.error('[loadActivity] renderActivityList function not found');
+      activityEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error</div><div class="empty-state-description">renderActivityList function not available</div></div>';
+      return;
+    }
+    if (typeof toast !== 'undefined') {
+      if (activityItems && activityItems.length > 0) {
+        toast.success(`Loaded ${activityItems.length} activity entries`);
+      } else {
+        toast.info("No activity found");
+      }
+    }
+  } catch (e) {
+    console.error('[loadActivity] Error:', e);
+    activityEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error loading activity</div><div class="empty-state-description">${e.message}</div></div>`;
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error("Error loading activity: " + e.message);
+    }
+  }
+}
+window.loadActivity = loadActivity;
+window.renderActivityList = renderActivityList;
+
+function renderEventsTable(events, stats) {
+  const eventsEl = document.getElementById("events");
+  if (!eventsEl) {
+    console.error('[renderEventsTable] Events element not found');
+    return;
+  }
+  const eventNameFilter = document.getElementById("events_event_name")?.value?.trim() || "";
+  
+  // Filter events by event_name if filter is set
+  let filteredEvents = events;
+  if (eventNameFilter) {
+    filteredEvents = events.filter(e => (e.event_name || "unknown") === eventNameFilter);
+  }
+  
+  // Sort by timestamp (most recent first)
+  filteredEvents = filteredEvents.slice().reverse();
+  
+  eventsEl.innerHTML = "";
+  
+  // Summary cards
+  const summaryContainer = document.createElement("div");
+  summaryContainer.className = "grid grid-cols-2 md:grid-cols-4 gap-3 mb-4";
+  
+  const createSummaryCard = (label, value, color = "#00f0ff") => {
+    const card = document.createElement("div");
+    card.className = "rounded-lg border p-3";
+    card.style.cssText = `background: #1e1e2e; border-color: #2a2a3e;`;
+    card.innerHTML = `
+      <div class="text-xs mb-1" style="color: #8888a0;">${label}</div>
+      <div class="text-lg font-bold" style="color: ${color};">${value}</div>
+    `;
+    return card;
+  };
+  
+  summaryContainer.appendChild(createSummaryCard("Total Events", stats.total));
+  summaryContainer.appendChild(createSummaryCard("Browser Events", stats.browser, "#00ff88"));
+  summaryContainer.appendChild(createSummaryCard("Google Ads", stats.google, "#ffd700"));
+  summaryContainer.appendChild(createSummaryCard("Meta Ads", stats.meta, "#a855f7"));
+  
+  // Ad tracking status card
+  const statusCard = document.createElement("div");
+  statusCard.className = "rounded-lg border p-3 mb-4";
+  statusCard.style.cssText = `background: #1e1e2e; border-color: #2a2a3e;`;
+  if (stats.google > 0 || stats.meta > 0) {
+    statusCard.innerHTML = `
+      <div class="text-xs mb-1" style="color: #8888a0;">Ad Tracking Status</div>
+      <div class="text-sm font-bold" style="color: #00ff88;">✅ Confirmed</div>
+      <div class="text-xs mt-1" style="color: #8888a0;">Google: ${stats.google} | Meta: ${stats.meta}</div>
+    `;
+  } else if (stats.browser > 0) {
+    statusCard.innerHTML = `
+      <div class="text-xs mb-1" style="color: #8888a0;">Ad Tracking Status</div>
+      <div class="text-sm font-bold" style="color: #ffd700;">⚠️ No UTM detected</div>
+      <div class="text-xs mt-1" style="color: #8888a0;">${stats.noUtm} events without UTM parameters</div>
+    `;
+  } else {
+    statusCard.innerHTML = `
+      <div class="text-xs mb-1" style="color: #8888a0;">Ad Tracking Status</div>
+      <div class="text-sm" style="color: #8888a0;">No browser events</div>
+    `;
+  }
+  
+  eventsEl.appendChild(summaryContainer);
+  eventsEl.appendChild(statusCard);
+  
+  // Events table
+  const tableContainer = document.createElement("div");
+  tableContainer.className = "overflow-x-auto";
+  
+  const table = document.createElement("table");
+  table.className = "w-full text-xs";
+  table.style.cssText = "border-collapse: collapse;";
+  
+  // Table header
+  const thead = document.createElement("thead");
+  thead.innerHTML = `
+    <tr style="border-bottom: 1px solid #2a2a3e;">
+      <th class="text-left p-2" style="color: #8888a0;">Timestamp</th>
+      <th class="text-left p-2" style="color: #8888a0;">Event</th>
+      <th class="text-left p-2" style="color: #8888a0;">Page ID</th>
+      <th class="text-left p-2" style="color: #8888a0;">UTM Source</th>
+      <th class="text-left p-2" style="color: #8888a0;">UTM Campaign</th>
+      <th class="text-left p-2" style="color: #8888a0;">Actions</th>
+    </tr>
+  `;
+  table.appendChild(thead);
+  
+  // Table body
+  const tbody = document.createElement("tbody");
+  
+  filteredEvents.forEach((event, idx) => {
+    const params = event.params_json || {};
+    const utmSource = params.utm_source || "-";
+    const utmCampaign = params.utm_campaign || "-";
+    const timestamp = new Date(event.timestamp).toLocaleString();
+    
+    const row = document.createElement("tr");
+    row.style.cssText = "border-bottom: 1px solid #2a2a3e;";
+    if (idx % 2 === 0) {
+      row.style.background = "#151520";
+    }
+    
+    const paramsId = `event-params-${idx}`;
+    row.innerHTML = `
+      <td class="p-2 font-mono text-xs" style="color: #e0e0e8;">${timestamp}</td>
+      <td class="p-2"><span class="px-2 py-1 rounded text-xs" style="background: #1e1e2e; color: #00ff88;">${event.event_name || "unknown"}</span></td>
+      <td class="p-2 font-mono text-xs" style="color: #e0e0e8;">${event.page_id || "-"}</td>
+      <td class="p-2 text-xs" style="color: #e0e0e8;">${utmSource}</td>
+      <td class="p-2 text-xs" style="color: #e0e0e8;">${utmCampaign}</td>
+      <td class="p-2">
+        <button onclick="toggleEventParams('${paramsId}')" class="text-xs px-2 py-1 rounded border" style="border-color: #2a2a3e; color: #00f0ff; background: transparent;">View Params</button>
+      </td>
+    `;
+    
+    // Params row (hidden by default)
+    const paramsRow = document.createElement("tr");
+    paramsRow.id = paramsId;
+    paramsRow.style.display = "none";
+    paramsRow.style.cssText = "border-bottom: 1px solid #2a2a3e; background: #0a0a0f;";
+    const paramsCell = document.createElement("td");
+    paramsCell.colSpan = 6;
+    paramsCell.className = "p-3";
+    paramsCell.innerHTML = `<pre class="text-xs font-mono" style="color: #8888a0; white-space: pre-wrap;">${JSON.stringify(params, null, 2)}</pre>`;
+    paramsRow.appendChild(paramsCell);
+    
+    tbody.appendChild(row);
+    tbody.appendChild(paramsRow);
+  });
+  
+  table.appendChild(tbody);
+  tableContainer.appendChild(table);
+  eventsEl.appendChild(tableContainer);
+  
+  if (filteredEvents.length === 0) {
+    eventsEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-title">No events match filter</div><div class="empty-state-description">Try changing the filter criteria</div></div>';
+  }
+}
+
+function toggleEventParams(paramsId) {
+  const row = document.getElementById(paramsId);
+  if (row) {
+    row.style.display = row.style.display === "none" ? "table-row" : "none";
+  }
+}
+
+async function loadEvents() {
+  const eventsEl = document.getElementById("events");
+  if (!eventsEl) {
+    console.error('[loadEvents] Events element not found');
+    return;
+  }
+  eventsEl.innerHTML = '<div class="empty-state"><div class="spinner" style="margin: 0 auto;"></div><div class="empty-state-title mt-4">Loading events...</div></div>';
+  try {
+    const db = (typeof q === 'function' ? q("db") : (document.getElementById("db")?.value || "acq.db")) || "acq.db";
+    const pageId = document.getElementById("events_page_id")?.value?.trim() || null;
+    const params = new URLSearchParams({db, limit: "200"});
+    if (pageId) {
+      params.append("page_id", pageId);
+    }
+    console.log('[loadEvents] Fetching events data...');
+    const response = await (typeof api === 'function' ? api : window.api)("/api/events?" + params.toString());
+    const eventItems = response.items || [];
+    console.log('[loadEvents] Events data received, count:', eventItems.length);
+    
+    if (eventItems && eventItems.length > 0) {
+      // Group events by type and source
+      const byType = {};
+      const browserEvents = [];
+      const cliEvents = [];
+      const googleEvents = [];
+      const metaEvents = [];
+      const noUtmEvents = [];
+      
+      eventItems.forEach(e => {
+        const type = e.event_name || "unknown";
+        byType[type] = (byType[type] || 0) + 1;
+        
+        // Categorize
+        const eventParams = e.params_json || {};
+        const utmSource = eventParams.utm_source;
+        
+        if (eventParams.url || eventParams.referrer) {
+          browserEvents.push(e);
+          
+          // Check for ad platform
+          if (utmSource === "google" || utmSource === "googleads") {
+            googleEvents.push(e);
+          } else if (utmSource === "facebook" || utmSource === "meta" || utmSource === "instagram") {
+            metaEvents.push(e);
+          } else if (!utmSource) {
+            noUtmEvents.push(e);
+          }
+        } else {
+          cliEvents.push(e);
+        }
+      });
+      
+      renderEventsTable(eventItems, {
+        total: eventItems.length,
+        browser: browserEvents.length,
+        cli: cliEvents.length,
+        google: googleEvents.length,
+        meta: metaEvents.length,
+        noUtm: noUtmEvents.length,
+        byType: byType
+      });
+      
+      // Enhanced toast message
+      let toastMsg = `Loaded ${eventItems.length} events`;
+      if (googleEvents.length > 0 || metaEvents.length > 0) {
+        toastMsg += ` (${googleEvents.length} Google, ${metaEvents.length} Meta)`;
+        toast.success(toastMsg);
+      } else {
+        toast.info(toastMsg + " - No UTM parameters detected");
+      }
+    } else {
+      eventsEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-title">No events found</div><div class="empty-state-description">Events will appear here when pages send tracking data</div></div>';
+      toast.info("No events found");
+    }
+  } catch (e) {
+    console.error('[loadEvents] Error:', e);
+    eventsEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error loading events</div><div class="empty-state-description">${e.message}</div></div>`;
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error("Error loading events: " + e.message);
+    }
+  }
+}
+window.loadEvents = loadEvents;
+window.renderEventsTable = renderEventsTable;
+window.toggleEventParams = toggleEventParams;
+
+async function bulkPublish(execute) {
+  const bulkEl = document.getElementById("bulk");
+  bulkEl.innerHTML = '<div class="empty-state"><div class="spinner" style="margin: 0 auto;"></div><div class="empty-state-title mt-4">Running bulk publish...</div></div>';
+  try {
+    const db = q("db") || "acq.db";
+    const payload = {
+      action: "publish",
+      db,
+      page_status: q("page_status") || "draft",
+      client_id: q("client_id") || null,
+      template_id: q("template_id") || null,
+      geo_city: q("geo_city") || null,
+      limit: 200,
+      execute: execute || false,
+      force: false
+    };
+    const data = await api("/api/bulk/run", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(payload)});
+    const pre = document.createElement("pre");
+    pre.className = "text-xs";
+    pre.style.cssText = "color: #e0e0e8; white-space: pre-wrap; word-wrap: break-word;";
+    pre.textContent = JSON.stringify(data, null, 2);
+    bulkEl.innerHTML = "";
+    bulkEl.appendChild(pre);
+    const mode = execute ? "executed" : "dry-run";
+    const count = data?.results?.length || 0;
+    toast.success(`Bulk publish ${mode}: ${count} page(s)`);
+  } catch (e) {
+    bulkEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Publish error</div><div class="empty-state-description">${e.message}</div></div>`;
+    toast.error("Publish error: " + e.message);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  await refreshMe();
+  try {
+    const r = await apiFetch("/api/health");
+    const j = await r.json();
+    const healthTextEl = document.getElementById("health-text");
+    const indicatorEl = document.getElementById("health-indicator");
+    if (healthTextEl) {
+      if (j.ok) {
+        healthTextEl.textContent = "OK" + (j.version ? (" • v" + j.version) : "");
+        healthTextEl.style.color = "#00ff88";
+        if (indicatorEl) {
+          indicatorEl.className = "status-dot ok";
+        }
+      } else {
+        healthTextEl.textContent = "BAD" + (j.version ? (" • v" + j.version) : "");
+        healthTextEl.style.color = "#ffd700";
+        if (indicatorEl) {
+          indicatorEl.className = "status-dot warn";
+        }
+      }
+    }
+    // Update version in footer
+    const footerVersion = document.getElementById("footer-version");
+    if (footerVersion && j.version) {
+      footerVersion.textContent = "v" + j.version;
+    }
+  } catch (e) {
+    const healthTextEl = document.getElementById("health-text");
+    const indicatorEl = document.getElementById("health-indicator");
+    if (healthTextEl) {
+      healthTextEl.textContent = "ERR";
+      healthTextEl.style.color = "#ff0040";
+      if (indicatorEl) {
+        indicatorEl.className = "status-dot error";
+      }
+    }
+  }
+  
+  // Load secret from localStorage if available
+  loadSecret();
+  
+  // Make all load functions globally available (ensure they're on window)
+  if (typeof loadRevenue === 'function' && !window.loadRevenue) {
+    window.loadRevenue = loadRevenue;
+  }
+  if (typeof loadRoas === 'function' && !window.loadRoas) {
+    window.loadRoas = loadRoas;
+  }
+  if (typeof loadLeads === 'function' && !window.loadLeads) {
+    window.loadLeads = loadLeads;
+  }
+  if (typeof loadEvents === 'function' && !window.loadEvents) {
+    window.loadEvents = loadEvents;
+  }
+  if (typeof loadActivity === 'function' && !window.loadActivity) {
+    window.loadActivity = loadActivity;
+  }
+  if (typeof loadKpis === 'function' && !window.loadKpis) {
+    window.loadKpis = loadKpis;
+  }
+  if (typeof loadSpend === 'function' && !window.loadSpend) {
+    window.loadSpend = loadSpend;
+  }
+  if (typeof loadPages === 'function' && !window.loadPages) {
+    window.loadPages = loadPages;
+  }
+  if (typeof loadCampaigns === 'function' && !window.loadCampaigns) {
+    window.loadCampaigns = loadCampaigns;
+  }
+  if (typeof loadAlerts === 'function' && !window.loadAlerts) {
+    window.loadAlerts = loadAlerts;
+  }
+  if (typeof loadThresholds === 'function' && !window.loadThresholds) {
+    window.loadThresholds = loadThresholds;
+  }
+  if (typeof loadNotifyConfig === 'function' && !window.loadNotifyConfig) {
+    window.loadNotifyConfig = loadNotifyConfig;
+  }
+  
+  // Also ensure render functions are globally available
+  if (typeof renderRevenue === 'function' && !window.renderRevenue) {
+    window.renderRevenue = renderRevenue;
+  }
+  if (typeof renderRoas === 'function' && !window.renderRoas) {
+    window.renderRoas = renderRoas;
+  }
+  if (typeof renderLeads === 'function' && !window.renderLeads) {
+    window.renderLeads = renderLeads;
+  }
+  
+  console.log('[Global] Functions available:', {
+    loadRevenue: typeof window.loadRevenue === 'function',
+    loadRoas: typeof window.loadRoas === 'function',
+    loadLeads: typeof window.loadLeads === 'function',
+    loadEvents: typeof window.loadEvents === 'function',
+    loadActivity: typeof window.loadActivity === 'function',
+    loadKpis: typeof window.loadKpis === 'function',
+    renderRevenue: typeof window.renderRevenue === 'function',
+    renderRoas: typeof window.renderRoas === 'function',
+    renderLeads: typeof window.renderLeads === 'function',
+    api: typeof window.api === 'function',
+    q: typeof window.q === 'function'
+  });
+  
+  // Fallback hash change handler removed - router handles it now
+  // It will auto-initialize when DOM is ready
+});
+
+</script>
+</body>
+</html>

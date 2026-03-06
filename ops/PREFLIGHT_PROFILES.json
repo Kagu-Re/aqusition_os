@@ -1,0 +1,26 @@
+{
+  "dev": {
+    "stale_days": 7,
+    "max_actionable": 0,
+    "max_open_total": 200,
+    "max_doing_total": 20,
+    "max_doing_per_assignee": 5,
+    "max_open_per_client": 50
+  },
+  "staging": {
+    "stale_days": 7,
+    "max_actionable": 2,
+    "max_open_total": 100,
+    "max_doing_total": 15,
+    "max_doing_per_assignee": 4,
+    "max_open_per_client": 25
+  },
+  "prod": {
+    "stale_days": 3,
+    "max_actionable": 0,
+    "max_open_total": 50,
+    "max_doing_total": 10,
+    "max_doing_per_assignee": 3,
+    "max_open_per_client": 10
+  }
+}

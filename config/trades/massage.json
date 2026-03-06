@@ -1,0 +1,66 @@
+{
+  "version": "1.0",
+  "default_hours": "Mon-Sun 9am-9pm",
+  "default_license_badges": ["Licensed", "Insured"],
+  "default_price_anchor_pattern": "Starting from {currency}{amount}",
+  "default_brand_theme": "Professional massage and wellness — rest, restore, renew.",
+  "default_amenities": [
+    "Licensed & Insured Therapists",
+    "Premium Oils & Aromatherapy",
+    "Sanitized Rooms & Equipment",
+    "Flexible Same-Day Booking",
+    "100% Satisfaction Guarantee",
+    "Easy Online Scheduling"
+  ],
+  "default_testimonials_patterns": [
+    "Starting from {price_anchor} — transparent pricing, no hidden fees.",
+    "Serving {service_area[0]} and surrounding areas with care.",
+    "4.9★ average rating from verified customers.",
+    "500+ relaxing sessions completed — join our happy clients.",
+    "Same-day appointments available — book when you need it most."
+  ],
+  "default_faq_patterns": [
+    "What are your operating hours?",
+    "What areas do you serve?",
+    "How do I book an appointment?",
+    "What types of massage do you offer?"
+  ],
+  "default_faq_qa": [
+    {"q": "What are your operating hours?", "a": "We're open {hours}. Book online for same-day availability."},
+    {"q": "What areas do you serve?", "a": "We serve {service_area[0]} and surrounding areas. Contact us to confirm your location."},
+    {"q": "How do I book an appointment?", "a": "Book online or call us. Choose your preferred package and time slot."},
+    {"q": "What types of massage do you offer?", "a": "We offer relaxation, deep tissue, and couples massage. See our packages above for details."}
+  ],
+  "default_cta_primary": "View Packages",
+  "default_cta_secondary": "Book Now",
+  "default_packages": [
+    {
+      "name": "60-Minute Relaxation Massage",
+      "price": 1500,
+      "duration_min": 60,
+      "addons": ["Aromatherapy", "Hot stones"],
+      "meta_json": {"service_focus": null, "max_capacity": 8}
+    },
+    {
+      "name": "90-Minute Deep Tissue Massage",
+      "price": 2200,
+      "duration_min": 90,
+      "addons": ["Hot stones"],
+      "meta_json": {"service_focus": "premium", "max_capacity": 5}
+    },
+    {
+      "name": "Couples Massage (60 min)",
+      "price": 2800,
+      "duration_min": 60,
+      "addons": ["Champagne", "Private room"],
+      "meta_json": {"service_focus": "premium", "max_capacity": 3}
+    }
+  ],
+  "default_hero_image_url": "https://images.pexels.com/photos/5659005/pexels-photo-5659005.jpeg?auto=compress&cs=tinysrgb&w=1200",
+  "default_gallery_images": [
+    "https://images.pexels.com/photos/5659005/pexels-photo-5659005.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "https://images.pexels.com/photos/5659021/pexels-photo-5659021.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "https://images.pexels.com/photos/9146378/pexels-photo-9146378.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "https://images.pexels.com/photos/6560298/pexels-photo-6560298.jpeg?auto=compress&cs=tinysrgb&w=800"
+  ]
+}

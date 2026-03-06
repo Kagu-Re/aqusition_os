@@ -1,0 +1,9 @@
+{
+  "version": "X.Y.Z",
+  "artifact": {
+    "mode": "file",
+    "filename": "acq_engine_vX_Y_Z.zip",
+    "reason": ""
+  },
+  "env": "dev"
+}

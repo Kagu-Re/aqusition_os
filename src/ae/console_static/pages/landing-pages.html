@@ -1,0 +1,432 @@
+<div class="space-y-8">
+  <div>
+    <h2 class="text-2xl font-bold mb-4" style="color: #00f0ff;">Landing Pages</h2>
+    <p class="text-sm mb-6" style="color: #8888a0;">Create and manage landing pages for your clients</p>
+  </div>
+
+  <!-- Create New Landing Page -->
+  <div class="card mb-6">
+    <h3 class="text-lg font-bold mb-4" style="color: #00f0ff;">Create New Landing Page</h3>
+    <form id="create-page-form" class="space-y-4" aria-label="Create Landing Page">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="form-field">
+          <label for="page_id" class="block text-xs mb-2" style="color: #8888a0;">
+            Page ID <span class="required-indicator" aria-label="required">*</span>
+          </label>
+          <input id="page_id" name="page_id" type="text" required 
+                 aria-required="true" aria-invalid="false" aria-describedby="page_id-error"
+                 class="w-full px-4 py-2.5 text-sm rounded-lg border bg-transparent font-mono"
+                 style="border-color: #2a2a3e; color: #e0e0e8;" placeholder="p-client-id-v1"/>
+          <div id="page_id-error" class="error-message" role="alert"></div>
+        </div>
+        <div class="form-field">
+          <label for="client_id" class="block text-xs mb-2" style="color: #8888a0;">
+            Client ID <span class="required-indicator" aria-label="required">*</span>
+          </label>
+          <input id="client_id" name="client_id" type="text" required 
+                 aria-required="true" aria-invalid="false" aria-describedby="client_id-error"
+                 class="w-full px-4 py-2.5 text-sm rounded-lg border bg-transparent font-mono"
+                 style="border-color: #2a2a3e; color: #e0e0e8;" placeholder="client-id"/>
+          <div id="client_id-error" class="error-message" role="alert"></div>
+        </div>
+        <div class="form-field">
+          <label for="template_id" class="block text-xs mb-2" style="color: #8888a0;">
+            Template ID <span class="required-indicator" aria-label="required">*</span>
+          </label>
+          <input id="template_id" name="template_id" type="text" required 
+                 aria-required="true" aria-invalid="false" aria-describedby="template_id-error"
+                 class="w-full px-4 py-2.5 text-sm rounded-lg border bg-transparent font-mono"
+                 style="border-color: #2a2a3e; color: #e0e0e8;" placeholder="trade_lp" value="trade_lp"/>
+          <div id="template_id-error" class="error-message" role="alert"></div>
+        </div>
+        <div class="form-field">
+          <label for="page_slug" class="block text-xs mb-2" style="color: #8888a0;">
+            Page Slug <span class="required-indicator" aria-label="required">*</span>
+          </label>
+          <input id="page_slug" name="page_slug" type="text" required 
+                 aria-required="true" aria-invalid="false" aria-describedby="page_slug-error"
+                 class="w-full px-4 py-2.5 text-sm rounded-lg border bg-transparent"
+                 style="border-color: #2a2a3e; color: #e0e0e8;" placeholder="client-slug-v1"/>
+          <div id="page_slug-error" class="error-message" role="alert"></div>
+        </div>
+        <div class="form-field">
+          <label for="page_url" class="block text-xs mb-2" style="color: #8888a0;">
+            Page URL <span class="required-indicator" aria-label="required">*</span>
+          </label>
+          <input id="page_url" name="page_url" type="url" required 
+                 aria-required="true" aria-invalid="false" aria-describedby="page_url-error"
+                 class="w-full px-4 py-2.5 text-sm rounded-lg border bg-transparent"
+                 style="border-color: #2a2a3e; color: #e0e0e8;" placeholder="https://yourdomain.com/path/to/page"/>
+          <div id="page_url-error" class="error-message" role="alert"></div>
+        </div>
+        <div class="form-field">
+          <label for="page_status" class="block text-xs mb-2" style="color: #8888a0;">Status</label>
+          <select id="page_status" name="page_status" 
+                  aria-describedby="page_status-help"
+                  class="w-full px-4 py-2.5 text-sm rounded-lg border bg-transparent"
+                  style="border-color: #2a2a3e; color: #e0e0e8;">
+            <option value="draft">Draft</option>
+            <option value="qa">QA</option>
+            <option value="live">Live</option>
+            <option value="paused">Paused</option>
+          </select>
+          <div id="page_status-help" class="text-xs mt-1" style="color: #555566;">Initial status for the landing page</div>
+        </div>
+        <div class="form-field">
+          <label for="locale" class="block text-xs mb-2" style="color: #8888a0;">Locale</label>
+          <input id="locale" name="locale" type="text" 
+                 aria-describedby="locale-help"
+                 class="w-full px-4 py-2.5 text-sm rounded-lg border bg-transparent"
+                 style="border-color: #2a2a3e; color: #e0e0e8;" placeholder="en-AU" value="en-AU"/>
+          <div id="locale-help" class="text-xs mt-1" style="color: #555566;">Language and region code (e.g., en-AU, en-US)</div>
+        </div>
+        <div class="form-field">
+          <label for="service_focus" class="block text-xs mb-2" style="color: #8888a0;">Service Focus (optional)</label>
+          <input id="service_focus" name="service_focus" type="text" 
+                 aria-describedby="service_focus-help"
+                 class="w-full px-4 py-2.5 text-sm rounded-lg border bg-transparent"
+                 style="border-color: #2a2a3e; color: #e0e0e8;" placeholder="premium, standard, etc."/>
+          <div id="service_focus-help" class="text-xs mt-1" style="color: #555566;">Optional service tier or focus area</div>
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <button type="submit" class="btn btn-primary" aria-busy="false" id="submit-btn">
+          <span class="btn-text">Create Landing Page</span>
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="resetForm()" aria-label="Reset form">Reset</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Filters -->
+  <div class="card mb-6">
+    <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+      <div class="flex gap-3 flex-wrap">
+        <input id="filter_client_id" class="px-4 py-2.5 text-sm rounded-lg border bg-transparent font-mono"
+               style="border-color: #2a2a3e; color: #e0e0e8; width: 140px;" placeholder="client_id"/>
+        <input id="filter_template_id" class="px-4 py-2.5 text-sm rounded-lg border bg-transparent font-mono"
+               style="border-color: #2a2a3e; color: #e0e0e8; width: 140px;" placeholder="template_id"/>
+        <select id="filter_status" class="px-4 py-2.5 text-sm rounded-lg border bg-transparent"
+                style="border-color: #2a2a3e; color: #e0e0e8;">
+          <option value="">status:any</option>
+          <option value="draft">draft</option>
+          <option value="live">live</option>
+          <option value="paused">paused</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="loadLandingPages()">Load Pages</button>
+    </div>
+  </div>
+
+  <!-- Landing Pages List -->
+  <div id="landing-pages-list" class="scrollable-container rounded-lg p-6 border"
+       style="background: #151520; border-color: #2a2a3e; color: #e0e0e8; min-height: 400px;">
+    <div class="empty-state">
+      <div class="spinner" style="margin: 0 auto;"></div>
+      <div class="empty-state-title mt-4">Loading landing pages...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+async function loadLandingPages() {
+  const listEl = document.getElementById('landing-pages-list');
+  if (!listEl) return;
+  
+  listEl.innerHTML = '<div class="empty-state"><div class="spinner" style="margin: 0 auto;"></div><div class="empty-state-title mt-4">Loading...</div></div>';
+  
+  try {
+    const db = q("db") || "acq.db";
+    const params = new URLSearchParams({db});
+    
+    const clientId = document.getElementById('filter_client_id')?.value;
+    const templateId = document.getElementById('filter_template_id')?.value;
+    const status = document.getElementById('filter_status')?.value;
+    
+    if (clientId) params.append('client_id', clientId);
+    if (templateId) params.append('template_id', templateId);
+    if (status) params.append('page_status', status);
+    
+    const response = await api(`/api/pages?${params.toString()}`);
+    const pages = response.items || [];
+    
+    if (pages.length === 0) {
+      listEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon" style="font-size: 64px; opacity: 0.6;">📄</div><div class="empty-state-title" style="font-size: 18px; margin-bottom: 12px;">No landing pages found</div><div class="empty-state-description" style="font-size: 14px;">Create a new landing page using the form above</div></div>';
+      return;
+    }
+    
+    listEl.innerHTML = '';
+    for (const page of pages) {
+      const card = document.createElement('div');
+      card.className = 'card mb-3';
+      card.style.cssText = 'padding: 16px; border-color: #2a2a3e;';
+      
+      const statusColor = page.page_status === 'live' ? '#00ff88' : page.page_status === 'draft' ? '#ffd700' : '#8888a0';
+      
+      card.innerHTML = `
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <div>
+            <div class="font-mono text-sm font-bold mb-1" style="color: #00f0ff;">${escapeHtml(page.page_id)}</div>
+            <div class="text-xs mb-1" style="color: #8888a0;">Client: ${escapeHtml(page.client_id)} · Template: ${escapeHtml(page.template_id)}</div>
+            <div class="text-xs" style="color: #8888a0;">${escapeHtml(page.page_url)}</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="px-3 py-1 rounded-full text-xs font-bold" style="background: rgba(0, 255, 136, 0.1); color: ${statusColor}; border: 1px solid ${statusColor};">
+              ${escapeHtml(page.page_status || 'draft')}
+            </span>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" 
+                  onclick="validatePage('${escapeHtml(page.page_id)}')"
+                  aria-label="Validate page ${escapeHtml(page.page_id)}">✓ Validate</button>
+          <button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;" 
+                  onclick="publishPage('${escapeHtml(page.page_id)}')"
+                  aria-label="Publish page ${escapeHtml(page.page_id)}">🚀 Publish</button>
+          <a href="${escapeHtml(page.page_url)}" target="_blank" rel="noopener noreferrer" 
+             class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;"
+             aria-label="View page ${escapeHtml(page.page_id)} in new tab">🔗 View</a>
+        </div>
+      `;
+      listEl.appendChild(card);
+    }
+    
+    if (typeof toast !== 'undefined') {
+      toast.success(`Loaded ${pages.length} landing page(s)`);
+    }
+  } catch (e) {
+    console.error('[loadLandingPages] Error:', e);
+    listEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error loading landing pages</div><div class="empty-state-description">${escapeHtml(e.message)}</div></div>`;
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error("Error loading landing pages: " + e.message);
+    }
+  }
+}
+
+async function validatePage(pageId) {
+  try {
+    const db = q("db") || "acq.db";
+    const params = new URLSearchParams({db});
+    const response = await api(`/api/pages/${pageId}/validate?${params.toString()}`, { method: 'POST' });
+    
+    if (response.ok) {
+      if (typeof toast !== 'undefined') toast.success(`Page ${pageId} validated successfully`);
+    } else {
+      const errors = response.errors || [];
+      if (typeof toast !== 'undefined') toast.error(`Validation failed: ${errors.join(', ')}`);
+    }
+  } catch (e) {
+    console.error('[validatePage] Error:', e);
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error("Error validating page: " + e.message);
+    }
+  }
+}
+
+async function publishPage(pageId) {
+  if (!confirm(`Publish page ${pageId}?`)) return;
+  
+  try {
+    const db = q("db") || "acq.db";
+    const params = new URLSearchParams({db});
+    const response = await api(`/api/pages/${pageId}/publish?${params.toString()}`, { method: 'POST' });
+    
+    if (response.ok) {
+      if (typeof toast !== 'undefined') toast.success(`Page ${pageId} published successfully`);
+      await loadLandingPages();
+    } else {
+      if (typeof toast !== 'undefined') toast.error(`Publish failed: ${response.detail || 'Unknown error'}`);
+    }
+  } catch (e) {
+    console.error('[publishPage] Error:', e);
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error("Error publishing page: " + e.message);
+    }
+  }
+}
+
+// Form validation helper
+function validateField(fieldId, errorId) {
+  const field = document.getElementById(fieldId);
+  const errorEl = document.getElementById(errorId);
+  const value = field.value.trim();
+  
+  // Clear previous errors
+  field.setAttribute('aria-invalid', 'false');
+  if (errorEl) {
+    errorEl.textContent = '';
+    errorEl.removeAttribute('role');
+  }
+  
+  // Validate required fields
+  if (field.hasAttribute('required') && !value) {
+    field.setAttribute('aria-invalid', 'true');
+    if (errorEl) {
+      errorEl.textContent = 'This field is required';
+      errorEl.setAttribute('role', 'alert');
+    }
+    return false;
+  }
+  
+  // Validate URL format
+  if (fieldId === 'page_url' && value) {
+    try {
+      new URL(value);
+    } catch (e) {
+      field.setAttribute('aria-invalid', 'true');
+      if (errorEl) {
+        errorEl.textContent = 'Please enter a valid URL';
+        errorEl.setAttribute('role', 'alert');
+      }
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+// Validate all form fields
+function validateForm() {
+  const fields = [
+    { id: 'page_id', error: 'page_id-error' },
+    { id: 'client_id', error: 'client_id-error' },
+    { id: 'template_id', error: 'template_id-error' },
+    { id: 'page_slug', error: 'page_slug-error' },
+    { id: 'page_url', error: 'page_url-error' }
+  ];
+  
+  let isValid = true;
+  fields.forEach(({ id, error }) => {
+    if (!validateField(id, error)) {
+      isValid = false;
+    }
+  });
+  
+  return isValid;
+}
+
+document.getElementById('create-page-form')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  // Validate form
+  if (!validateForm()) {
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error('Please fix the errors in the form');
+    }
+    // Focus first invalid field
+    const firstInvalid = document.querySelector('[aria-invalid="true"]');
+    if (firstInvalid) {
+      firstInvalid.focus();
+    }
+    return;
+  }
+  
+  const submitBtn = document.getElementById('submit-btn');
+  const btnText = submitBtn.querySelector('.btn-text');
+  
+  // Set loading state
+  submitBtn.setAttribute('aria-busy', 'true');
+  submitBtn.classList.add('loading');
+  submitBtn.disabled = true;
+  const originalText = btnText.textContent;
+  btnText.innerHTML = '<span class="spinner"></span> Creating...';
+  
+  const pageId = document.getElementById('page_id').value.trim();
+  const clientId = document.getElementById('client_id').value.trim();
+  const templateId = document.getElementById('template_id').value.trim();
+  const pageSlug = document.getElementById('page_slug').value.trim();
+  const pageUrl = document.getElementById('page_url').value.trim();
+  const pageStatus = document.getElementById('page_status').value;
+  const locale = document.getElementById('locale').value.trim() || 'en-AU';
+  const serviceFocus = document.getElementById('service_focus').value.trim() || null;
+  
+  try {
+    const db = q("db") || "acq.db";
+    const params = new URLSearchParams({db});
+    
+    const payload = {
+      page_id: pageId,
+      client_id: clientId,
+      template_id: templateId,
+      template_version: '1.0.0',
+      page_slug: pageSlug,
+      page_url: pageUrl,
+      page_status: pageStatus,
+      locale: locale,
+      service_focus: serviceFocus,
+      content_version: 1
+    };
+    
+    const response = await api(`/api/pages?${params.toString()}`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    
+    if (typeof toast !== 'undefined') toast.success(`Landing page ${pageId} created successfully`);
+    resetForm();
+    await loadLandingPages();
+  } catch (e) {
+    console.error('[createPage] Error:', e);
+    if (typeof toast !== 'undefined' && toast.error) {
+      toast.error("Error creating landing page: " + e.message);
+    }
+  } finally {
+    // Reset button state
+    submitBtn.setAttribute('aria-busy', 'false');
+    submitBtn.classList.remove('loading');
+    submitBtn.disabled = false;
+    btnText.textContent = originalText;
+  }
+});
+
+// Real-time validation on blur
+['page_id', 'client_id', 'template_id', 'page_slug', 'page_url'].forEach(fieldId => {
+  const field = document.getElementById(fieldId);
+  const errorId = `${fieldId}-error`;
+  if (field) {
+    field.addEventListener('blur', () => validateField(fieldId, errorId));
+  }
+});
+
+function resetForm() {
+  const form = document.getElementById('create-page-form');
+  if (!form) return;
+  
+  form.reset();
+  document.getElementById('template_id').value = 'trade_lp';
+  document.getElementById('locale').value = 'en-AU';
+  document.getElementById('page_status').value = 'draft';
+  
+  // Clear validation errors
+  ['page_id', 'client_id', 'template_id', 'page_slug', 'page_url'].forEach(fieldId => {
+    const field = document.getElementById(fieldId);
+    const errorEl = document.getElementById(`${fieldId}-error`);
+    if (field) {
+      field.setAttribute('aria-invalid', 'false');
+    }
+    if (errorEl) {
+      errorEl.textContent = '';
+      errorEl.removeAttribute('role');
+    }
+  });
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Load pages when page loads
+(async function() {
+  await new Promise(resolve => setTimeout(resolve, 100));
+  if (typeof loadLandingPages === 'function') {
+    await loadLandingPages();
+  }
+})();
+
+window.loadLandingPages = loadLandingPages;
+window.validatePage = validatePage;
+window.publishPage = publishPage;
+</script>

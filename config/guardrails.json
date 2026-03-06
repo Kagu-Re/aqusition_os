@@ -1,0 +1,18 @@
+{
+  "version": "1.0.0",
+  "booking_event_name": "thank_you_view",
+  "thresholds": {
+    "min_ctr": 0.005,
+    "max_cpc": 50.0,
+    "max_cpl": 150.0,
+    "max_cpa": 300.0,
+    "min_lead_to_booking": 0.05,
+    "min_clicks_for_signal": 30,
+    "min_impressions_for_signal": 1000
+  },
+  "actions": {
+    "crit": "pause_or_fix_tracking",
+    "warn": "optimize_targeting_creative_landing",
+    "info": "observe"
+  }
+}

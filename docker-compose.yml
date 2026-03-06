@@ -1,0 +1,74 @@
+version: "3.9"
+
+services:
+  api:
+    build: .
+    container_name: ae_api
+    env_file:
+      - .env
+    environment:
+      AE_SERVICE_NAME: "ae_public_api"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ae_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+    profiles: ["public"]
+
+  console:
+    build: .
+    container_name: ae_console
+    env_file:
+      - .env
+    environment:
+      AE_SERVICE_NAME: "ae_console"
+      AE_CONSOLE: "1"
+    command: ["python", "-m", "uvicorn", "ae.console_app:app", "--host", "0.0.0.0", "--port", "8001"]
+    ports:
+      - "8001:8001"
+    volumes:
+      - ae_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8001/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+    profiles: ["console"]
+
+  proxy_public:
+    image: caddy:2
+    container_name: ae_proxy_public
+    ports:
+      - "8080:80"
+    volumes:
+      - ./ops/caddy/Caddyfile.public:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - api
+    restart: unless-stopped
+    profiles: ["proxy_public"]
+
+  proxy_full:
+    image: caddy:2
+    container_name: ae_proxy_full
+    ports:
+      - "8080:80"
+    environment:
+      AE_CONSOLE_USER: "${AE_CONSOLE_USER:-admin}"
+      AE_CONSOLE_PASS_HASH: "${AE_CONSOLE_PASS_HASH:-}"
+    volumes:
+      - ./ops/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - api
+      - console
+    restart: unless-stopped
+    profiles: ["proxy_full"]
+
+volumes:
+  ae_data:
+    name: ae_data

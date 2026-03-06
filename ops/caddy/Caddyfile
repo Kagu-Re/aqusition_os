@@ -1,0 +1,46 @@
+{
+  # Global options
+  auto_https off
+}
+
+:80 {
+  # Rate limiting (basic) - requires Caddy v2.7+ with rate_limit directive only if plugin is present.
+  # So we keep it simple and rely on upstream platform rate limits if needed.
+
+  # Security headers (minimal)
+  header {
+    X-Content-Type-Options "nosniff"
+    X-Frame-Options "DENY"
+    Referrer-Policy "no-referrer"
+  }
+
+  # Public API (no auth)
+  handle_path /api/* {
+    reverse_proxy api:8000
+  }
+
+  # Health/metrics (optionally protected via AE_METRICS_TOKEN at app level)
+  handle /health {
+    reverse_proxy api:8000
+  }
+  handle /metrics {
+    reverse_proxy api:8000
+  }
+
+  # Console protected by basic auth (recommended)
+  @console path /console* /docs* /openapi.json
+  handle @console {
+    basicauth {
+      {$AE_CONSOLE_USER} {$AE_CONSOLE_PASS_HASH}
+    }
+    reverse_proxy console:8001
+  }
+
+  # Default route: serve a minimal landing text
+  handle {
+    respond "Acquisition Engine is running.
+- Public API: /api/
+- Console: /console (auth)
+" 200
+  }
+}

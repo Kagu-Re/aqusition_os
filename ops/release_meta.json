@@ -1,0 +1,9 @@
+{
+  "version": "4.2.0",
+  "artifact": {
+    "mode": "skip",
+    "filename": "acq_engine_v3_2_0.zip",
+    "reason": "Artifacts are produced as sandbox downloads in this environment; repo CI enforces an explicit skip reason instead of committing zip binaries."
+  },
+  "env": "dev"
+}

@@ -1,0 +1,54 @@
+<div class="space-y-8">
+  <div>
+    <h2 class="text-2xl font-bold mb-4" style="color: #00f0ff;">Activity</h2>
+    <p class="text-sm mb-6" style="color: #8888a0;">System activity log and timeline</p>
+  </div>
+
+  <!-- Filters -->
+  <div class="card mb-6">
+    <div class="flex flex-wrap items-center gap-3">
+      <input type="text" id="activity_search" placeholder="Search activity..." 
+             class="px-4 py-2 rounded-lg border bg-transparent text-sm"
+             style="border-color: #2a2a3e; color: #e0e0e8; flex: 1; min-width: 200px;" />
+      <select id="activity_action" class="px-4 py-2 rounded-lg border bg-transparent text-sm"
+              style="border-color: #2a2a3e; color: #e0e0e8;">
+        <option value="">All Actions</option>
+        <option value="create">Create</option>
+        <option value="update">Update</option>
+        <option value="delete">Delete</option>
+        <option value="publish">Publish</option>
+        <option value="validate">Validate</option>
+      </select>
+      <input type="date" id="activity_date_from" class="px-4 py-2 rounded-lg border bg-transparent text-sm"
+             style="border-color: #2a2a3e; color: #e0e0e8;" />
+      <input type="date" id="activity_date_to" class="px-4 py-2 rounded-lg border bg-transparent text-sm"
+             style="border-color: #2a2a3e; color: #e0e0e8;" />
+      <button class="btn btn-primary" onclick="loadActivity()">Refresh</button>
+    </div>
+  </div>
+
+  <!-- Activity Timeline -->
+  <div id="activity" class="scrollable-container rounded-lg p-6 border"
+       style="background: #151520; border-color: #2a2a3e; color: #e0e0e8; min-height: 400px;">
+    <div class="empty-state">
+      <div class="spinner" style="margin: 0 auto;"></div>
+      <div class="empty-state-title mt-4">Loading activity...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Load activity when page loads
+(async function() {
+  await new Promise(resolve => setTimeout(resolve, 100));
+  if (typeof loadActivity === 'function') {
+    await loadActivity();
+  } else {
+    console.error('loadActivity function not found');
+    const activityEl = document.getElementById('activity');
+    if (activityEl) {
+      activityEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error</div><div class="empty-state-description">loadActivity function not available</div></div>';
+    }
+  }
+})();
+</script>

@@ -1,0 +1,51 @@
+{
+  "version": "1.0",
+  "default_hours": "Mon-Sun 10am-8pm",
+  "default_license_badges": ["Licensed", "Insured", "Certified"],
+  "default_price_anchor_pattern": "Starting from {currency}{amount}",
+  "default_brand_theme": "Luxury spa and wellness",
+  "default_amenities": [
+    "Licensed & Insured",
+    "Premium Facilities",
+    "Expert Therapists",
+    "Luxury Experience",
+    "VIP Treatment"
+  ],
+  "default_testimonials_patterns": [
+    "Starting from {price_anchor}",
+    "Serving {service_area[0]} and surrounding areas",
+    "5★ luxury rating",
+    "Premium clientele",
+    "Exclusive packages available"
+  ],
+  "default_faq_patterns": [
+    "What are your operating hours?",
+    "What areas do you serve?",
+    "What makes your spa different?",
+    "Do you offer gift packages?"
+  ],
+  "default_faq_qa": [
+    {"q": "What are your operating hours?", "a": "We're open {hours}. Book online for same-day availability."},
+    {"q": "What areas do you serve?", "a": "We serve {service_area[0]} and surrounding areas. Contact us to confirm your location."},
+    {"q": "What makes your spa different?", "a": "We offer premium treatments with certified therapists in a luxury setting."},
+    {"q": "Do you offer gift packages?", "a": "Yes. Gift packages are available. Contact us for details."}
+  ],
+  "default_cta_primary": "View Premium Packages",
+  "default_cta_secondary": "Book Premium Service",
+  "default_packages": [
+    {
+      "name": "60-Minute Spa Treatment",
+      "price": 2000,
+      "duration_min": 60,
+      "addons": ["Aromatherapy", "Steam room"],
+      "meta_json": {"service_focus": null, "max_capacity": 6}
+    },
+    {
+      "name": "90-Minute Premium Spa Package",
+      "price": 3000,
+      "duration_min": 90,
+      "addons": ["Champagne", "Private suite"],
+      "meta_json": {"service_focus": "premium", "max_capacity": 4}
+    }
+  ]
+}

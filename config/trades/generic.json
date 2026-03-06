@@ -1,0 +1,31 @@
+{
+  "version": "1.0",
+  "default_hours": "Mon-Fri 9am-5pm",
+  "default_license_badges": ["Licensed", "Insured"],
+  "default_price_anchor_pattern": "Starting from {currency}{amount}",
+  "default_brand_theme": "Professional service",
+  "default_amenities": [
+    "Licensed & Insured",
+    "Professional Staff",
+    "Quality Service",
+    "Customer Satisfaction"
+  ],
+  "default_testimonials_patterns": [
+    "Starting from {price_anchor}",
+    "Serving {service_area[0]} and surrounding areas",
+    "Quality service guaranteed"
+  ],
+  "default_faq_patterns": [
+    "What are your operating hours?",
+    "What areas do you serve?",
+    "How do I book?"
+  ],
+  "default_faq_qa": [
+    {"q": "What are your operating hours?", "a": "We're available {hours}. Contact us to confirm."},
+    {"q": "What areas do you serve?", "a": "We serve {service_area[0]} and surrounding areas."},
+    {"q": "How do I book?", "a": "Call us or submit a request online. We respond promptly."}
+  ],
+  "default_cta_primary": "Get Started",
+  "default_cta_secondary": "Contact Us",
+  "default_packages": []
+}

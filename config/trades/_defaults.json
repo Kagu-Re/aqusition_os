@@ -1,0 +1,21 @@
+{
+  "currency_map": {
+    "AU": "A$",
+    "US": "$",
+    "TH": "฿",
+    "GB": "£",
+    "EU": "€",
+    "CA": "C$",
+    "NZ": "NZ$"
+  },
+  "price_ranges": {
+    "massage": { "TH": 800, "AU": 80, "US": 60 },
+    "spa": { "TH": 1000, "AU": 100, "US": 80 },
+    "plumber": { "TH": 500, "AU": 120, "US": 100 },
+    "electrician": { "TH": 600, "AU": 130, "US": 110 },
+    "roofing": { "TH": 2000, "AU": 200, "US": 180 },
+    "pest_control": { "TH": 800, "AU": 150, "US": 120 },
+    "hvac": { "TH": 1500, "AU": 180, "US": 160 },
+    "digital_literacy_workshop": { "TH": 1500, "AU": 150, "US": 120 }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "version": "1.0",
+  "default_hours": "Mon-Fri 9am-5pm, Sat 10am-2pm",
+  "default_license_badges": ["Certified Instructor", "Accredited Program"],
+  "default_price_anchor_pattern": "Starting from {currency}{amount}",
+  "default_brand_theme": "Empowering digital skills and literacy",
+  "default_amenities": [
+    "Certified Instructors",
+    "Small Class Sizes",
+    "Hands-On Learning",
+    "English Language Support",
+    "Certificate of Completion"
+  ],
+  "default_testimonials_patterns": [
+    "Starting from {price_anchor}",
+    "Serving {service_area[0]} and surrounding areas",
+    "4.8★ average rating",
+    "200+ students trained",
+    "Beginner-friendly workshops"
+  ],
+  "default_faq_patterns": [
+    "What are your operating hours?",
+    "What areas do you serve?",
+    "Do I need prior computer experience?",
+    "What will I learn in the workshop?",
+    "Is the workshop conducted in English?"
+  ],
+  "default_faq_qa": [
+    {"q": "What are your operating hours?", "a": "We run workshops {hours}. Contact us for schedule."},
+    {"q": "What areas do you serve?", "a": "We serve {service_area[0]} and surrounding areas."},
+    {"q": "Do I need prior computer experience?", "a": "No. Workshops are beginner-friendly."},
+    {"q": "What will I learn in the workshop?", "a": "Basic computer skills, internet safety, and productivity tools."},
+    {"q": "Is the workshop conducted in English?", "a": "Yes. English language support is provided."}
+  ],
+  "default_cta_primary": "View Workshop Schedule",
+  "default_cta_secondary": "Register Now",
+  "default_packages": [
+    {
+      "name": "Basic Digital Literacy Workshop (3 hours)",
+      "price": 1500,
+      "duration_min": 180,
+      "addons": ["Take-home materials", "Certificate"],
+      "meta_json": {"service_focus": null, "max_capacity": 15}
+    },
+    {
+      "name": "Intermediate Digital Skills Workshop (6 hours)",
+      "price": 2500,
+      "duration_min": 360,
+      "addons": ["Workbook", "Certificate", "Follow-up support"],
+      "meta_json": {"service_focus": "premium", "max_capacity": 12}
+    },
+    {
+      "name": "Advanced Digital Literacy Course (12 hours)",
+      "price": 4000,
+      "duration_min": 720,
+      "addons": ["Comprehensive materials", "Certificate", "Ongoing support"],
+      "meta_json": {"service_focus": "premium", "max_capacity": 10}
+    }
+  ]
+}

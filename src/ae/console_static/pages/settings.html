@@ -1,0 +1,96 @@
+<div class="space-y-8">
+  <div>
+    <h2 class="text-2xl font-bold mb-4" style="color: #00f0ff;">Settings</h2>
+    <p class="text-sm mb-6" style="color: #8888a0;">Configure alerts, notifications, and system settings</p>
+  </div>
+
+  <!-- Alerts Thresholds -->
+  <div class="card mb-8">
+    <h3 class="text-lg font-bold mb-4" style="color: #ffd700;">Alert Thresholds</h3>
+    <div class="grid grid-cols-2 gap-2 mb-3 text-xs">
+      <label class="flex flex-col gap-1" style="color: #8888a0;">
+        <span>min_roas</span>
+        <input id="thr_min_roas" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+               style="border-color: #2a2a3e; color: #e0e0e8;" value="1.5" />
+      </label>
+      <label class="flex flex-col gap-1" style="color: #8888a0;">
+        <span>max_cpl</span>
+        <input id="thr_max_cpl" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+               style="border-color: #2a2a3e; color: #e0e0e8;" value="300" />
+      </label>
+      <label class="flex flex-col gap-1" style="color: #8888a0;">
+        <span>min_booking_rate</span>
+        <input id="thr_min_br" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+               style="border-color: #2a2a3e; color: #e0e0e8;" value="0.05" />
+      </label>
+      <label class="flex flex-col gap-1" style="color: #8888a0;">
+        <span>max_spend_no_revenue</span>
+        <input id="thr_max_snr" class="px-2 py-1 text-xs rounded-lg border bg-transparent outline-none font-mono"
+               style="border-color: #2a2a3e; color: #e0e0e8;" value="1000" />
+      </label>
+    </div>
+    <div class="flex flex-wrap items-center gap-2 mb-3">
+      <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="loadThresholds()">load</button>
+      <button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="saveThresholds()">save</button>
+      <span id="thr_hint" class="text-xs" style="color: #555566;"></span>
+    </div>
+    <p class="text-xs" style="color: #555566;">These are guardrails, not gospel. Start conservative, tighten after 2–4 weeks of data.</p>
+  </div>
+
+  <!-- Notification Config -->
+  <div class="card mb-8">
+    <h3 class="text-lg font-bold mb-4" style="color: #00f0ff;">Notification Configuration</h3>
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div>
+        <label class="block text-xs mb-2" style="color: #8888a0;">Telegram Bot Token</label>
+        <input id="n_tg_token" class="w-full px-4 py-2 text-sm rounded-lg border bg-transparent font-mono"
+               style="border-color: #2a2a3e; color: #e0e0e8;" placeholder="bot token" />
+      </div>
+      <div>
+        <label class="block text-xs mb-2" style="color: #8888a0;">Telegram Chat ID</label>
+        <input id="n_tg_chat" class="w-full px-4 py-2 text-sm rounded-lg border bg-transparent font-mono"
+               style="border-color: #2a2a3e; color: #e0e0e8;" placeholder="chat id" />
+      </div>
+      <div>
+        <label class="block text-xs mb-2" style="color: #8888a0;">Webhook URL</label>
+        <input id="n_webhook" class="w-full px-4 py-2 text-sm rounded-lg border bg-transparent font-mono"
+               style="border-color: #2a2a3e; color: #e0e0e8;" placeholder="https://..." />
+      </div>
+      <div>
+        <label class="block text-xs mb-2" style="color: #8888a0;">File Path</label>
+        <input id="n_file" class="w-full px-4 py-2 text-sm rounded-lg border bg-transparent font-mono"
+               style="border-color: #2a2a3e; color: #e0e0e8;" value="ops/notify.log" />
+      </div>
+      <div>
+        <label class="block text-xs mb-2" style="color: #8888a0;">Throttle (seconds)</label>
+        <input id="n_throttle" class="w-full px-4 py-2 text-sm rounded-lg border bg-transparent font-mono"
+               style="border-color: #2a2a3e; color: #e0e0e8;" value="86400" />
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-2 mt-4">
+      <button class="btn btn-secondary" onclick="loadNotifyConfig()">Load Config</button>
+      <button class="btn btn-primary" onclick="saveNotifyConfig()">Save Config</button>
+      <button class="btn btn-success" onclick="testNotify()">Test Notification</button>
+      <span id="n_hint" class="text-xs ml-2" style="color: #555566;"></span>
+    </div>
+    <div id="notify_report" class="mt-4"></div>
+  </div>
+</div>
+
+<script>
+// Load settings when page loads
+(async function() {
+  await new Promise(resolve => setTimeout(resolve, 100));
+  if (typeof loadThresholds === 'function') {
+    await loadThresholds();
+  } else {
+    console.error('loadThresholds function not found');
+  }
+  
+  if (typeof loadNotifyConfig === 'function') {
+    await loadNotifyConfig();
+  } else {
+    console.error('loadNotifyConfig function not found');
+  }
+})();
+</script>

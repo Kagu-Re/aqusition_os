@@ -1,0 +1,86 @@
+{
+  "meta": {
+    "timestamp": [
+      "date start",
+      "date_start",
+      "day",
+      "date",
+      "date stop",
+      "date_stop"
+    ],
+    "impressions": [
+      "impressions"
+    ],
+    "clicks": [
+      "clicks",
+      "link clicks",
+      "link_clicks",
+      "unique link clicks",
+      "unique_link_clicks"
+    ],
+    "spend": [
+      "amount spent (usd)",
+      "amount spent",
+      "spend",
+      "cost"
+    ],
+    "revenue": [
+      "purchase conversion value",
+      "website purchases conversion value",
+      "omni purchase conversion value",
+      "purchase value",
+      "conversion value"
+    ],
+    "campaign_id": [
+      "campaign id",
+      "campaign_id"
+    ],
+    "adset_id": [
+      "ad set id",
+      "adset id",
+      "adset_id"
+    ],
+    "ad_id": [
+      "ad id",
+      "ad_id"
+    ]
+  },
+  "google": {
+    "timestamp": [
+      "day",
+      "date"
+    ],
+    "impressions": [
+      "impressions"
+    ],
+    "clicks": [
+      "clicks"
+    ],
+    "spend": [
+      "cost",
+      "cost (aud)",
+      "cost (usd)",
+      "cost (thb)"
+    ],
+    "revenue": [
+      "conversion value",
+      "conv. value",
+      "all conv. value",
+      "total conv. value"
+    ],
+    "campaign_id": [
+      "campaign id",
+      "campaign_id"
+    ],
+    "adset_id": [
+      "ad group id",
+      "ad group",
+      "adgroup id",
+      "adgroup_id"
+    ],
+    "ad_id": [
+      "ad id",
+      "ad_id"
+    ]
+  }
+}

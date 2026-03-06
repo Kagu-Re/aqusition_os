@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Money Board — Client View</title>
+  <link rel="stylesheet" href="/console_static/tailwind.css"/>
+  <link rel="stylesheet" href="/console_static/styles.css"/>
+  <style>
+    body {
+      background: #0a0a0f;
+      color: #e0e0e8;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    .akira-bg { background: #0a0a0f; }
+    .akira-surface { background: #151520; }
+    .akira-surface-elevated { background: #1e1e2e; }
+    .akira-border { border-color: #2a2a3e; }
+    .akira-cyan { color: #00f0ff; }
+    .akira-green { color: #00ff88; }
+    .akira-red { color: #ff0040; }
+    .akira-yellow { color: #ffd700; }
+    
+    .scrollable-container {
+      overflow-y: auto;
+      overflow-x: hidden;
+      min-height: 200px;
+      max-height: calc(100vh - 200px);
+    }
+    
+    .scrollable-container::-webkit-scrollbar {
+      width: 8px;
+    }
+    .scrollable-container::-webkit-scrollbar-track {
+      background: #151520;
+      border-radius: 4px;
+    }
+    .scrollable-container::-webkit-scrollbar-thumb {
+      background: #2a2a3e;
+      border-radius: 4px;
+    }
+    .scrollable-container::-webkit-scrollbar-thumb:hover {
+      background: #3a3a4e;
+    }
+    
+    .card {
+      background: #151520;
+      border: 1px solid #2a2a3e;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: #00f0ff20;
+      border-color: #00f0ff40;
+      color: #00f0ff;
+    }
+    
+    .btn-primary:hover {
+      background: #00f0ff30;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+    }
+    
+    .empty-state-icon {
+      font-size: 64px;
+      opacity: 0.6;
+      margin-bottom: 16px;
+    }
+    
+    .empty-state-title {
+      font-size: 18px;
+      margin-bottom: 12px;
+      color: #e0e0e8;
+    }
+    
+    .empty-state-description {
+      font-size: 14px;
+      color: #8888a0;
+    }
+    
+    .spinner {
+      border: 3px solid #2a2a3e;
+      border-top: 3px solid #00f0ff;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .client-info {
+      background: #1e1e2e;
+      border: 1px solid #2a2a3e;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
+<body class="min-h-screen akira-bg">
+  <div class="mx-auto max-w-7xl px-6 py-8">
+    <header class="flex items-center justify-between gap-6 mb-8 pb-6 border-b" style="border-color: #2a2a3e;">
+      <div>
+        <div class="text-xs uppercase tracking-widest mb-2" style="color: #00f0ff; letter-spacing: 0.2em;">Client View</div>
+        <h1 class="text-3xl font-bold" style="color: #00f0ff;">Money Board</h1>
+        <p class="text-sm mt-2" style="color: #8888a0;">Your booking pipeline</p>
+      </div>
+      <div class="flex items-center gap-4">
+        <button class="btn btn-primary" onclick="loadMoneyBoard()">🔄 Refresh</button>
+      </div>
+    </header>
+    
+    <div id="client-info" class="client-info">
+      <div class="text-sm" style="color: #8888a0;">Loading client information...</div>
+    </div>
+    
+    <div class="card">
+      <div id="money-board" class="scrollable-container rounded-lg border p-6"
+           style="background: #151520; border-color: #2a2a3e;">
+        <div class="empty-state">
+          <div class="spinner" style="margin: 0 auto;"></div>
+          <div class="empty-state-title mt-4">Loading money board...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // API helper
+    function q(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name);
+    }
+    
+    async function apiFetch(path, opts={}) {
+      const url = path.startsWith('http') ? path : path;
+      const options = {
+        ...opts,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(opts.headers || {}),
+        },
+      };
+      
+      // Support secret auth (for admin/operator access)
+      if (window.AE_SECRET) {
+        options.headers['X-AE-SECRET'] = window.AE_SECRET;
+      }
+      
+      // Also try to get secret from URL parameter (for client sharing)
+      const secretFromUrl = q("secret");
+      if (secretFromUrl && !window.AE_SECRET) {
+        options.headers['X-AE-SECRET'] = secretFromUrl;
+      }
+      
+      const res = await fetch(url, options);
+      if (!res.ok) {
+        const text = await res.text();
+        // Show helpful message for auth errors
+        if (res.status === 401) {
+          throw new Error(`HTTP ${res.status}: Authentication required. Set window.AE_SECRET in browser console or add ?secret=YOUR_SECRET to URL`);
+        }
+        throw new Error(`HTTP ${res.status}: ${text}`);
+      }
+      return res.json();
+    }
+    
+    async function api(path, opts={}) {
+      return apiFetch(path, opts);
+    }
+    
+    // Toast notifications
+    const toast = {
+      success: (msg) => {
+        console.log('[SUCCESS]', msg);
+        const toastEl = document.createElement('div');
+        toastEl.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #00ff88; color: #0a0a0f; padding: 12px 20px; border-radius: 8px; z-index: 1000; font-size: 14px;';
+        toastEl.textContent = msg;
+        document.body.appendChild(toastEl);
+        setTimeout(() => toastEl.remove(), 3000);
+      },
+      error: (msg) => {
+        console.error('[ERROR]', msg);
+        const toastEl = document.createElement('div');
+        toastEl.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #ff0040; color: #fff; padding: 12px 20px; border-radius: 8px; z-index: 1000; font-size: 14px;';
+        toastEl.textContent = msg;
+        document.body.appendChild(toastEl);
+        setTimeout(() => toastEl.remove(), 5000);
+      },
+      info: (msg) => {
+        console.log('[INFO]', msg);
+      },
+    };
+    
+    async function loadClientInfo() {
+      const clientId = q("client_id");
+      if (!clientId) {
+        document.getElementById("client-info").innerHTML = '<div class="text-sm" style="color: #ff0040;">⚠️ No client_id specified in URL</div>';
+        return;
+      }
+      
+      try {
+        const db = q("db") || "acq.db";
+        const client = await api(`/api/clients/${clientId}?db=${db}`);
+        const infoEl = document.getElementById("client-info");
+        infoEl.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-lg font-bold mb-1" style="color: #00f0ff;">${client.client_name || clientId}</div>
+              <div class="text-sm" style="color: #8888a0;">Client ID: ${clientId}</div>
+            </div>
+            <div class="text-sm" style="color: #8888a0;">
+              ${client.service_area ? `Service Area: ${Array.isArray(client.service_area) ? client.service_area.join(', ') : client.service_area}` : ''}
+            </div>
+          </div>
+        `;
+      } catch (e) {
+        console.error('[loadClientInfo] Error:', e);
+        document.getElementById("client-info").innerHTML = `<div class="text-sm" style="color: #ff0040;">⚠️ Error loading client info: ${e.message}</div>`;
+      }
+    }
+    
+    async function loadMoneyBoard() {
+      const boardEl = document.getElementById("money-board");
+      if (!boardEl) {
+        console.error('[loadMoneyBoard] Money board element not found');
+        return;
+      }
+      boardEl.innerHTML = '<div class="empty-state"><div class="spinner" style="margin: 0 auto;"></div><div class="empty-state-title mt-4">Loading money board...</div></div>';
+      try {
+        const db = q("db") || "acq.db";
+        const clientId = q("client_id");
+        if (!clientId) {
+          throw new Error("client_id is required");
+        }
+        
+        const params = new URLSearchParams({db, client_id: clientId});
+        
+        console.log('[loadMoneyBoard] Fetching money board data for client:', clientId);
+        const data = await api("/api/money-board?" + params.toString());
+        console.log('[loadMoneyBoard] Money board data received, columns:', data.columns?.length || 0);
+        renderMoneyBoard(data);
+        
+        const totalItems = (data.columns || []).reduce((sum, col) => sum + (col.items?.length || 0), 0);
+        if (totalItems > 0) {
+          toast.success(`Loaded ${totalItems} item(s) across ${data.columns?.length || 0} column(s)`);
+        } else {
+          toast.info("No items in money board");
+        }
+      } catch (e) {
+        console.error('[loadMoneyBoard] Error:', e);
+        boardEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error loading money board</div><div class="empty-state-description">${e.message}</div></div>`;
+        toast.error("Error loading money board: " + e.message);
+      }
+    }
+    
+    function renderMoneyBoard(data) {
+      const boardEl = document.getElementById("money-board");
+      if (!boardEl) return;
+      
+      const columns = data.columns || [];
+      if (columns.length === 0 || columns.every(col => !col.items || col.items.length === 0)) {
+        boardEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon" style="font-size: 64px; opacity: 0.6;">💰</div><div class="empty-state-title" style="font-size: 18px; margin-bottom: 12px;">No items in money board</div><div class="empty-state-description" style="font-size: 14px;">No bookings found for this client</div></div>';
+        return;
+      }
+      
+      // Kanban board layout
+      let html = '<div class="flex gap-4 overflow-x-auto pb-4" style="min-height: 400px;">';
+      
+      columns.forEach(column => {
+        const status = column.status || "unknown";
+        const count = column.count || 0;
+        const items = column.items || [];
+        
+        // Column header colors (4-column simplified layout)
+        const statusColors = {
+          "pending": "#ff8800",
+          "confirmed": "#00ff88",
+          "complete": "#00ff88",
+          "closed": "#8888a0",
+        };
+        const color = statusColors[status] || "#8888a0";
+        
+        html += `
+          <div class="flex-shrink-0 w-64 rounded-lg border p-3" style="background: #1e1e2e; border-color: #2a2a3e;">
+            <div class="mb-3 pb-2 border-b" style="border-color: #2a2a3e;">
+              <div class="text-xs font-bold mb-1" style="color: ${color}; text-transform: uppercase;">${status.replace(/_/g, ' ')}</div>
+              <div class="text-xs" style="color: #8888a0;">${count} item(s)</div>
+            </div>
+            <div class="space-y-2" style="max-height: 600px; overflow-y: auto;">
+        `;
+        
+        if (items.length === 0) {
+          html += '<div class="text-xs text-center py-4" style="color: #555566;">No items</div>';
+        } else {
+          items.forEach(item => {
+            const leadName = item.lead_name || "Unknown";
+            const leadPhone = item.lead_phone || "";
+            const packageName = item.package_name || item.package_id || "—";
+            const amount = item.amount || item.package_price || 0;
+            const preferredWindow = item.preferred_window || "";
+            const requestId = item.request_id || "";
+            const depositRequested = item.deposit_requested === true;
+            
+            // Determine action buttons based on status
+            let actionButtons = "";
+            if (status === "pending") {
+              actionButtons = `
+                 <div class="flex flex-wrap gap-2 mt-2">
+                   <button onclick="confirmBooking('${requestId}')" class="px-2 py-1 text-xs rounded border transition-colors" style="background: #00ff8820; border-color: #00ff8840; color: #00ff88;">Confirm</button>
+                   <button onclick="requestDeposit('${requestId}')" class="px-2 py-1 text-xs rounded border transition-colors" style="background: #ff004020; border-color: #ff004040; color: #ff0040;">Request Deposit</button>
+                   <button onclick="setPackage('${requestId}')" class="px-2 py-1 text-xs rounded border transition-colors" style="background: #00f0ff20; border-color: #00f0ff40; color: #00f0ff;">Change Package</button>
+                   <button onclick="setTimeWindow('${requestId}')" class="px-2 py-1 text-xs rounded border transition-colors" style="background: #ffd70020; border-color: #ffd70040; color: #ffd700;">Change Timeslot</button>
+                   ${depositRequested ? '<button onclick="markPaid(\'' + requestId + '\')" class="px-2 py-1 text-xs rounded border transition-colors" style="background: #00ff8820; border-color: #00ff8840; color: #00ff88;">Mark Paid</button>' : ''}
+                 </div>
+               `;
+            } else if (status === "confirmed") {
+              actionButtons = `<button onclick="markCompleted('${requestId}')" class="mt-2 px-2 py-1 text-xs rounded border transition-colors" style="background: #00ff8820; border-color: #00ff8840; color: #00ff88; width: 100%;">Mark Complete</button>`;
+            } else if (status === "complete") {
+              actionButtons = `<button onclick="closeBooking('${requestId}')" class="mt-2 px-2 py-1 text-xs rounded border transition-colors" style="background: #8888a020; border-color: #8888a040; color: #8888a0; width: 100%;">Close</button>`;
+            }
+            
+            html += `
+              <div class="p-3 rounded border" 
+                   style="background: #151520; border-color: #2a2a3e;">
+                <div>
+                  <div class="text-xs font-semibold mb-1" style="color: #00f0ff;">${leadName}</div>
+                  <div class="text-xs mb-1" style="color: #e0e0e8;">${leadPhone}</div>
+                  <div class="text-xs mb-1" style="color: #8888a0;">${packageName}</div>
+                  ${depositRequested ? '<span class="inline-block mb-1 px-1.5 py-0.5 text-xs rounded" style="background: #ff004020; color: #ff0040;">Deposit requested</span>' : ''}
+                  ${amount > 0 ? `<div class="text-xs font-bold mt-2" style="color: #00ff88;">฿${amount.toFixed(0)}</div>` : ""}
+                  ${preferredWindow ? `<div class="text-xs mt-1" style="color: #ffd700;">⏰ ${preferredWindow}</div>` : ""}
+                </div>
+                ${actionButtons}
+              </div>
+            `;
+          });
+        }
+        
+        html += `
+            </div>
+          </div>
+        `;
+      });
+      
+      html += '</div>';
+      boardEl.innerHTML = html;
+    }
+    
+    async function confirmBooking(requestId) {
+      if (!confirm("Confirm this booking?")) return;
+      try {
+        const db = q("db") || "acq.db";
+        await api(`/api/money-board/${requestId}/confirm?db=${db}`, { method: "POST" });
+        toast.success("Booking confirmed");
+        await loadMoneyBoard();
+      } catch (e) {
+        toast.error("Error confirming booking: " + e.message);
+      }
+    }
+    
+    async function setPackage(requestId) {
+      const pkgId = prompt("Change package (e.g. pkg-relax-60):", "");
+      if (!pkgId) return;
+      try {
+        const db = q("db") || "acq.db";
+        await api(`/api/money-board/${requestId}/set-package?db=${db}`, {
+          method: "POST",
+          body: JSON.stringify({ package_id: pkgId }),
+        });
+        toast.success("Package updated");
+        await loadMoneyBoard();
+      } catch (e) {
+        toast.error("Error updating package: " + e.message);
+      }
+    }
+    
+    async function setTimeWindow(requestId) {
+      const window = prompt("Change timeslot (e.g. Morning (9am-12pm), Afternoon (12pm-5pm), Evening (5pm-9pm)):", "Morning (9am-12pm)");
+      if (!window) return;
+      try {
+        const db = q("db") || "acq.db";
+        const result = await api(`/api/money-board/${requestId}/set-time-window?db=${db}`, {
+          method: "POST",
+          body: JSON.stringify({preferred_window: window}),
+        });
+        toast.success("Time window set");
+        await loadMoneyBoard();
+      } catch (e) {
+        toast.error("Error setting time window: " + e.message);
+      }
+    }
+    
+    async function requestDeposit(requestId) {
+      const amount = prompt("Enter deposit amount:");
+      if (!amount) return;
+      const method = prompt("Enter payment method (promptpay/stripe/bank):") || "promptpay";
+      const paymentLink = prompt("Enter payment link (optional):") || "";
+      try {
+        const db = q("db") || "acq.db";
+        const result = await api(`/api/money-board/${requestId}/request-deposit?db=${db}`, {
+          method: "POST",
+          body: JSON.stringify({amount: parseFloat(amount), method, payment_link: paymentLink}),
+        });
+        toast.success("Deposit requested");
+        await loadMoneyBoard();
+      } catch (e) {
+        toast.error("Error requesting deposit: " + e.message);
+      }
+    }
+    
+    async function markPaid(requestId) {
+      if (!confirm("Confirm payment received?")) return;
+      try {
+        const db = q("db") || "acq.db";
+        await api(`/api/money-board/${requestId}/mark-paid?db=${db}`, { method: "POST" });
+        toast.success("Payment marked as paid");
+        await loadMoneyBoard();
+      } catch (e) {
+        toast.error("Error marking payment: " + e.message);
+      }
+    }
+    
+    async function markCompleted(requestId) {
+      try {
+        const db = q("db") || "acq.db";
+        const result = await api(`/api/money-board/${requestId}/mark-completed?db=${db}`, {method: "POST"});
+        toast.success("Booking marked as completed");
+        await loadMoneyBoard();
+      } catch (e) {
+        toast.error("Error marking completed: " + e.message);
+      }
+    }
+    
+    async function closeBooking(requestId) {
+      try {
+        const db = q("db") || "acq.db";
+        const result = await api(`/api/money-board/${requestId}/close?db=${db}`, {method: "POST"});
+        toast.success("Booking closed");
+        await loadMoneyBoard();
+      } catch (e) {
+        toast.error("Error closing booking: " + e.message);
+      }
+    }
+    
+    // Load on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      loadClientInfo();
+      loadMoneyBoard();
+    });
+  </script>
+</body>
+</html>

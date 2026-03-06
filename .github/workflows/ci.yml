@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install poetry
+          poetry install --no-interaction
+
+      - name: Run tests
+        run: |
+          poetry run pytest -q
+
+      - name: CI release gates
+        run: |
+          poetry run python ops/ci_release_gates.py
+prod_policy:
+  runs-on: ubuntu-latest
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install Poetry
+      run: pip install poetry
+
+    - name: Install dependencies
+      run: poetry install --no-interaction
+
+    - name: Enforce prod artifact policy (skip must fail)
+      run: |
+        python - <<'PY'
+        import json
+        from pathlib import Path
+
+        root = Path(".")
+        meta_path = root / "ops" / "release_meta.json"
+        meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        meta["env"] = "prod"
+        meta["artifact"]["mode"] = "skip"
+        meta["artifact"]["reason"] = "intentional test: prod skip must fail"
+        meta_path.write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
+        PY
+        set +e
+        poetry run python ops/check_release.py --ci
+        rc=$?
+        set -e
+        if [ "$rc" -eq 0 ]; then
+          echo "Expected failure but release gate passed."
+          exit 1
+        fi
+        echo "Prod policy gate correctly failed."

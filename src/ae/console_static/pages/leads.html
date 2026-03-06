@@ -1,0 +1,171 @@
+<div class="space-y-8">
+  <div>
+    <h2 class="text-2xl font-bold mb-4" style="color: #00f0ff;">Leads</h2>
+    <p class="text-sm mb-6" style="color: #8888a0;">Manage and track lead outcomes</p>
+  </div>
+
+  <!-- Filters -->
+  <div class="card mb-6">
+    <div class="flex flex-wrap items-center gap-3 mb-4">
+      <input type="text" id="leads_search" placeholder="Search leads..." 
+             class="px-4 py-2 rounded-lg border bg-transparent text-sm"
+             style="border-color: #2a2a3e; color: #e0e0e8; flex: 1; min-width: 200px;"
+             onkeyup="filterLeads()" />
+      <select id="leads_status" class="px-4 py-2 rounded-lg border bg-transparent text-sm"
+              style="border-color: #2a2a3e; color: #e0e0e8;"
+              onchange="filterLeads()">
+        <option value="">All Status</option>
+        <option value="new">New</option>
+        <option value="contacted">Contacted</option>
+        <option value="qualified">Qualified</option>
+        <option value="lost">Lost</option>
+      </select>
+      <select id="leads_booking_status" class="px-4 py-2 rounded-lg border bg-transparent text-sm"
+              style="border-color: #2a2a3e; color: #e0e0e8;"
+              onchange="filterLeads()">
+        <option value="">All Booking Status</option>
+        <option value="none">None</option>
+        <option value="booked">Booked</option>
+        <option value="paid">Paid</option>
+        <option value="lost">Lost</option>
+      </select>
+      <input type="date" id="leads_date_from" class="px-4 py-2 rounded-lg border bg-transparent text-sm"
+             style="border-color: #2a2a3e; color: #e0e0e8;"
+             onchange="filterLeads()" />
+      <input type="date" id="leads_date_to" class="px-4 py-2 rounded-lg border bg-transparent text-sm"
+             style="border-color: #2a2a3e; color: #e0e0e8;"
+             onchange="filterLeads()" />
+      <button class="btn btn-primary" onclick="loadLeads()">Load Leads</button>
+    </div>
+  </div>
+
+  <!-- Leads List -->
+  <div id="leads" class="space-y-3 scrollable-container rounded-lg p-6 border"
+       style="background: #151520; border-color: #2a2a3e; min-height: 400px;">
+    <div class="empty-state">
+      <div class="spinner" style="margin: 0 auto;"></div>
+      <div class="empty-state-title mt-4">Loading leads...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+let allLeads = [];
+
+function filterLeads() {
+  const search = (document.getElementById('leads_search')?.value || '').toLowerCase();
+  const statusFilter = document.getElementById('leads_status')?.value || '';
+  const bookingStatusFilter = document.getElementById('leads_booking_status')?.value || '';
+  const dateFrom = document.getElementById('leads_date_from')?.value || '';
+  const dateTo = document.getElementById('leads_date_to')?.value || '';
+  
+  let filtered = allLeads;
+  
+  if (search) {
+    filtered = filtered.filter(l => {
+      const searchText = `${l.name || ''} ${l.email || ''} ${l.phone || ''} ${l.message || ''} ${l.utm_campaign || ''}`.toLowerCase();
+      return searchText.includes(search);
+    });
+  }
+  
+  if (statusFilter) {
+    filtered = filtered.filter(l => (l.status || 'new') === statusFilter);
+  }
+  
+  if (bookingStatusFilter) {
+    filtered = filtered.filter(l => (l.booking_status || 'none') === bookingStatusFilter);
+  }
+  
+  if (dateFrom) {
+    filtered = filtered.filter(l => {
+      const leadDate = l.created_at ? new Date(l.created_at).toISOString().split('T')[0] : '';
+      return leadDate >= dateFrom;
+    });
+  }
+  
+  if (dateTo) {
+    filtered = filtered.filter(l => {
+      const leadDate = l.created_at ? new Date(l.created_at).toISOString().split('T')[0] : '';
+      return leadDate <= dateTo;
+    });
+  }
+  
+  const renderFn = window.renderLeads || renderLeads;
+  if (typeof renderFn === 'function') {
+    renderFn(filtered);
+  } else {
+    console.error('[Leads Page] renderLeads function not available for filtering');
+  }
+}
+
+// Load leads when page loads
+(async function() {
+  // Try multiple times to find functions (they might not be attached to window yet)
+  let attempts = 0;
+  const maxAttempts = 10;
+  while (attempts < maxAttempts && (!window.loadLeads || !window.api || !window.q || !window.renderLeads)) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    attempts++;
+  }
+  
+  console.log('[Leads Page] Checking functions...');
+  console.log('[Leads Page] window.loadLeads available:', typeof window.loadLeads === 'function');
+  console.log('[Leads Page] window.api available:', typeof window.api === 'function');
+  console.log('[Leads Page] window.q available:', typeof window.q === 'function');
+  console.log('[Leads Page] window.renderLeads available:', typeof window.renderLeads === 'function');
+  
+  const loadFn = window.loadLeads || loadLeads;
+  if (typeof loadFn === 'function') {
+    // Override loadLeads to store all leads
+    const originalLoadLeads = loadFn;
+    window.loadLeads = async function() {
+      const leadsEl = document.getElementById("leads");
+      if (!leadsEl) return;
+      leadsEl.innerHTML = '<div class="empty-state"><div class="spinner" style="margin: 0 auto;"></div><div class="empty-state-title mt-4">Loading leads...</div></div>';
+      try {
+        const qFn = window.q || q;
+        const apiFn = window.api || api;
+        if (typeof qFn === 'function' && typeof apiFn === 'function') {
+          const db = qFn("db") || "acq.db";
+          const params = new URLSearchParams({db, limit: "200"});
+          console.log('[Leads Page] Fetching leads...');
+          const data = await apiFn("/api/leads?" + params.toString());
+          console.log('[Leads Page] Leads received, count:', (data.items || []).length);
+          allLeads = data.items || [];
+          const renderFn = window.renderLeads || renderLeads;
+          if (typeof renderFn === 'function') {
+            renderFn(allLeads);
+          } else {
+            console.error('[Leads Page] renderLeads function not found');
+          }
+          const count = allLeads.length;
+          if (count > 0 && typeof toast !== 'undefined' && toast.success) {
+            toast.success(`Loaded ${count} lead(s)`);
+          } else if (typeof toast !== 'undefined' && toast.info) {
+            toast.info("No leads found");
+          }
+        } else {
+          throw new Error('q or api functions not available');
+        }
+      } catch (e) {
+        console.error('[Leads Page] Error:', e);
+        leadsEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error loading leads</div><div class="empty-state-description">${e.message}</div></div>`;
+        if (typeof toast !== 'undefined' && toast.error) {
+          toast.error("Error loading leads: " + e.message);
+        }
+      }
+    };
+    
+    // Load leads
+    console.log('[Leads Page] Calling loadLeads()...');
+    await window.loadLeads();
+    console.log('[Leads Page] loadLeads() completed');
+  } else {
+    console.error('[Leads Page] loadLeads function not found');
+    const leadsEl = document.getElementById("leads");
+    if (leadsEl) {
+      leadsEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error</div><div class="empty-state-description">loadLeads function not available</div></div>';
+    }
+  }
+})();
+</script>

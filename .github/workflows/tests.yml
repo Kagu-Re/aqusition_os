@@ -1,0 +1,53 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
+      - name: Run tests
+        env:
+          PYTHONPATH: src
+        run: |
+          pytest -q
+
+  validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
+      - name: Run validation phases (no deployment)
+        env:
+          PYTHONPATH: src
+        run: |
+          # Run phases 0-3 and 6 (skips deployment phases 4-5)
+          python ops/scripts/validate_system.py --all --json
+        continue-on-error: false
+      - name: Run validation phases (with deployment check)
+        env:
+          PYTHONPATH: src
+        run: |
+          # Run phases 0-3 and 6 only (deployment phases require services)
+          python ops/scripts/validate_system.py --phase 0
+          python ops/scripts/validate_system.py --phase 1 --db-path test.db
+          python ops/scripts/validate_system.py --phase 2
+          python ops/scripts/validate_system.py --phase 3
+          python ops/scripts/validate_system.py --phase 6 --db-path test.db
+        continue-on-error: false

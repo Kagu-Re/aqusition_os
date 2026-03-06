@@ -1,0 +1,8 @@
+{
+  "stale_days": 7,
+  "max_actionable": 0,
+  "max_open_total": 50,
+  "max_doing_total": 10,
+  "max_doing_per_assignee": 3,
+  "max_open_per_client": 10
+}

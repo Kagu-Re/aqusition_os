@@ -1,0 +1,53 @@
+<div class="space-y-8">
+  <div>
+    <h2 class="text-2xl font-bold mb-4" style="color: #00f0ff;">Spend</h2>
+    <p class="text-sm mb-6" style="color: #8888a0;">Import and manage ad spend data</p>
+  </div>
+
+  <!-- Import Panel -->
+  <div class="card mb-8">
+    <h3 class="text-lg font-bold mb-4" style="color: #00f0ff;">Ad Spend Import</h3>
+    <p class="mb-3 text-sm" style="color: #8888a0;">Paste JSON array of items. Example:</p>
+    <pre class="mb-4 rounded-lg p-3 text-xs border overflow-auto font-mono"
+         style="background: #151520; border-color: #2a2a3e; color: #8888a0; max-height: 140px;">[
+  {"day":"2026-02-01","source":"meta","utm_campaign":"cmp1","spend_value":1200,"spend_currency":"THB","client_id":"c1"},
+  {"day":"2026-02-01","source":"google","utm_campaign":"cmp1","spend_value":800,"spend_currency":"THB","client_id":"c1"}
+]</pre>
+    <textarea id="spend_json" class="w-full rounded-lg border p-3 text-xs outline-none font-mono" rows="6"
+              style="background: #151520; border-color: #2a2a3e; color: #e0e0e8;"
+              placeholder='[{"day":"YYYY-MM-DD","source":"meta|google","spend_value":123}]'></textarea>
+    <div class="mt-3 flex flex-wrap gap-2 items-center">
+      <button class="btn btn-primary" onclick="importSpend()">📥 Import spend</button>
+      <span id="spend_result" class="text-xs" style="color: #8888a0;"></span>
+    </div>
+  </div>
+
+  <!-- Spend Table -->
+  <div class="card">
+    <h3 class="text-lg font-bold mb-4" style="color: #00f0ff;">Spend (daily)</h3>
+    <div id="spend_table" class="space-y-2 scrollable-container rounded-lg p-6 border"
+         style="background: #151520; border-color: #2a2a3e; min-height: 400px;">
+      <div class="empty-state">
+        <div class="spinner" style="margin: 0 auto;"></div>
+        <div class="empty-state-title mt-4">Loading spend...</div>
+      </div>
+    </div>
+    <p class="mt-3 text-xs" style="color: #8888a0;">Import uses upsert key: (day, source, utm_campaign, client_id, currency). Re-import overwrites value.</p>
+  </div>
+</div>
+
+<script>
+// Load spend when page loads
+(async function() {
+  await new Promise(resolve => setTimeout(resolve, 100));
+  if (typeof loadSpend === 'function') {
+    await loadSpend();
+  } else {
+    console.error('loadSpend function not found');
+    const spendEl = document.getElementById('spend_table');
+    if (spendEl) {
+      spendEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error</div><div class="empty-state-description">loadSpend function not available</div></div>';
+    }
+  }
+})();
+</script>

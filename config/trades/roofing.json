@@ -1,0 +1,36 @@
+{
+  "version": "1.0",
+  "default_hours": "Mon-Fri 7am-5pm, Sat 8am-12pm",
+  "default_license_badges": ["Licensed", "Insured", "Bonded"],
+  "default_price_anchor_pattern": "Starting from {currency}{amount}",
+  "default_brand_theme": "Professional roofing and repairs",
+  "default_amenities": [
+    "Licensed & Insured",
+    "Free Inspections",
+    "Experienced Roofers",
+    "Upfront Quotes",
+    "Quality Materials"
+  ],
+  "default_testimonials_patterns": [
+    "Starting from {price_anchor}",
+    "Serving {service_area[0]} and surrounding areas",
+    "4.8★ average rating",
+    "500+ roofs completed",
+    "Storm damage specialists"
+  ],
+  "default_faq_patterns": [
+    "What are your operating hours?",
+    "What areas do you serve?",
+    "Do you offer free inspections?",
+    "How do I request a quote?"
+  ],
+  "default_faq_qa": [
+    {"q": "What are your operating hours?", "a": "We're available {hours}."},
+    {"q": "What areas do you serve?", "a": "We serve {service_area[0]} and surrounding areas."},
+    {"q": "Do you offer free inspections?", "a": "Yes. Free inspections available. Call to schedule."},
+    {"q": "How do I request a quote?", "a": "Call us or submit online. We provide free estimates."}
+  ],
+  "default_cta_primary": "Request Quote",
+  "default_cta_secondary": "Call Now",
+  "default_packages": []
+}

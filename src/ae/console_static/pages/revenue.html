@@ -1,0 +1,100 @@
+<div class="space-y-8">
+  <div>
+    <h2 class="text-2xl font-bold mb-4" style="color: #00ff88;">Revenue & ROAS</h2>
+    <p class="text-sm mb-6" style="color: #8888a0;">Track revenue, bookings, and return on ad spend</p>
+  </div>
+
+  <!-- Revenue Section -->
+  <div class="card mb-8">
+    <h3 class="text-lg font-bold mb-4" style="color: #00ff88;">Revenue</h3>
+    <div id="revenue" class="scrollable-container rounded-lg p-6 border"
+         style="background: #151520; border-color: #2a2a3e; color: #e0e0e8; min-height: 300px;">
+      <!-- Content will be loaded here by loadRevenue() -->
+    </div>
+    <p class="mt-3 text-xs" style="color: #8888a0;">
+      To set booking outcomes: call <span class="font-mono" style="color: #00f0ff;">POST /api/leads/&lt;id&gt;/outcome?db=...</span> with secret header.
+    </p>
+  </div>
+
+  <!-- ROAS Section -->
+  <div class="card">
+    <h3 class="text-lg font-bold mb-4" style="color: #00ff88;">ROAS</h3>
+    <div id="roas" class="scrollable-container rounded-lg p-6 border"
+         style="background: #151520; border-color: #2a2a3e; color: #e0e0e8; min-height: 300px;">
+      <!-- Content will be loaded here by loadRoas() -->
+    </div>
+  </div>
+</div>
+
+<script>
+// Load revenue and ROAS when page loads
+// Prevent duplicate execution
+if (!window._revenuePageLoaded) {
+  window._revenuePageLoaded = true;
+  
+  (async function() {
+    // Wait a bit to ensure DOM is ready and functions are available
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    // Try multiple times to find functions (they might not be attached to window yet)
+    let attempts = 0;
+    const maxAttempts = 10;
+    while (attempts < maxAttempts && (!window.loadRevenue || !window.loadRoas || !window.api || !window.q)) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      attempts++;
+    }
+    
+    console.log('[Revenue Page] Checking functions...');
+    console.log('[Revenue Page] window.loadRevenue available:', typeof window.loadRevenue === 'function');
+    console.log('[Revenue Page] window.loadRoas available:', typeof window.loadRoas === 'function');
+    console.log('[Revenue Page] window.api available:', typeof window.api === 'function');
+    console.log('[Revenue Page] window.q available:', typeof window.q === 'function');
+    
+    // Check if elements exist
+    const revenueEl = document.getElementById('revenue');
+    const roasEl = document.getElementById('roas');
+    console.log('[Revenue Page] revenue element found:', !!revenueEl);
+    console.log('[Revenue Page] roas element found:', !!roasEl);
+    
+    try {
+      const loadFn = window.loadRevenue || loadRevenue;
+      if (typeof loadFn === 'function' && revenueEl) {
+        console.log('[Revenue Page] Calling loadRevenue()...');
+        await loadFn();
+        console.log('[Revenue Page] loadRevenue() completed');
+      } else {
+        console.error('[Revenue Page] loadRevenue function not found or element missing');
+        if (revenueEl) {
+          revenueEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error</div><div class="empty-state-description">loadRevenue function not available or element not found</div></div>';
+        }
+      }
+    } catch (e) {
+      console.error('[Revenue Page] Error loading revenue:', e);
+      if (revenueEl) {
+        revenueEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error</div><div class="empty-state-description">${e.message}</div></div>`;
+      }
+    }
+    
+    try {
+      const loadFn = window.loadRoas || loadRoas;
+      if (typeof loadFn === 'function' && roasEl) {
+        console.log('[Revenue Page] Calling loadRoas()...');
+        await loadFn();
+        console.log('[Revenue Page] loadRoas() completed');
+      } else {
+        console.error('[Revenue Page] loadRoas function not found or element missing');
+        if (roasEl) {
+          roasEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error</div><div class="empty-state-description">loadRoas function not available or element not found</div></div>';
+        }
+      }
+    } catch (e) {
+      console.error('[Revenue Page] Error loading ROAS:', e);
+      if (roasEl) {
+        roasEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error</div><div class="empty-state-description">${e.message}</div></div>`;
+      }
+    }
+  })();
+} else {
+  console.log('[Revenue Page] Script already executed, skipping duplicate');
+}
+</script>

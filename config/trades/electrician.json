@@ -1,0 +1,36 @@
+{
+  "version": "1.0",
+  "default_hours": "Mon-Fri 7am-6pm, Sat 8am-4pm",
+  "default_license_badges": ["Licensed", "Insured", "Certified"],
+  "default_price_anchor_pattern": "Starting from {currency}{amount}",
+  "default_brand_theme": "Professional electrical services",
+  "default_amenities": [
+    "Licensed & Insured",
+    "24/7 Emergency Service",
+    "Certified Electricians",
+    "Upfront Pricing",
+    "Safety Guaranteed"
+  ],
+  "default_testimonials_patterns": [
+    "Starting from {price_anchor}",
+    "Serving {service_area[0]} and surrounding areas",
+    "4.9★ average rating",
+    "500+ completed jobs",
+    "Same-day service available"
+  ],
+  "default_faq_patterns": [
+    "What are your operating hours?",
+    "What areas do you serve?",
+    "Do you offer emergency service?",
+    "How do I request a quote?"
+  ],
+  "default_faq_qa": [
+    {"q": "What are your operating hours?", "a": "We're available {hours}. Emergency service is 24/7."},
+    {"q": "What areas do you serve?", "a": "We serve {service_area[0]} and surrounding areas."},
+    {"q": "Do you offer emergency service?", "a": "Yes. Call us anytime for emergency electrical work."},
+    {"q": "How do I request a quote?", "a": "Call us or submit a request online. We respond same day."}
+  ],
+  "default_cta_primary": "Request Quote",
+  "default_cta_secondary": "Call Now",
+  "default_packages": []
+}

@@ -1,0 +1,39 @@
+# Reverse-proxy deployment example (Caddy)
+#
+# Usage:
+#   cp .env.example .env
+#   # set AE_CONSOLE_SECRET and other vars
+#   # edit ops/deploy/caddy/Caddyfile: replace domain
+#   docker compose -f docker-compose.yml -f docker-compose.reverse-proxy.yml up --build
+#
+# Notes:
+# - Exposes only ports 80/443 for the proxy, not the services directly.
+# - Console is reachable at https://<domain>/console/
+# - Public API is reachable at https://<domain>/api/
+#
+services:
+  console:
+    ports: []  # do not publish directly
+
+  public:
+    ports: []  # do not publish directly
+
+  proxy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./ops/deploy/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      console:
+        condition: service_healthy
+      public:
+        condition: service_healthy
+
+volumes:
+  caddy_data:
+  caddy_config:

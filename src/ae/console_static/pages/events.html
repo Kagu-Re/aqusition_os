@@ -1,0 +1,48 @@
+<div class="space-y-8">
+  <div>
+    <h2 class="text-2xl font-bold mb-4" style="color: #00ff88;">Events</h2>
+    <p class="text-sm mb-6" style="color: #8888a0;">Track user events and interactions</p>
+  </div>
+
+  <!-- Filters -->
+  <div class="card mb-6">
+    <div class="mb-4 flex gap-2 flex-wrap">
+      <input type="text" id="events_page_id" placeholder="Filter by page_id (optional)" 
+             class="rounded-lg border px-3 py-2 text-sm" 
+             style="border-color: #2a2a3e; background: #151520; color: #e0e0e8; flex: 1; min-width: 150px;" />
+      <select id="events_event_name" class="rounded-lg border px-3 py-2 text-sm" 
+              style="border-color: #2a2a3e; background: #151520; color: #e0e0e8;">
+        <option value="">All event types</option>
+        <option value="call_click">call_click</option>
+        <option value="quote_submit">quote_submit</option>
+        <option value="thank_you_view">thank_you_view</option>
+      </select>
+      <button class="btn btn-primary" onclick="loadEvents()">Load Events</button>
+    </div>
+  </div>
+
+  <!-- Events Table -->
+  <div id="events" class="scrollable-container rounded-lg p-6 border"
+       style="background: #151520; border-color: #2a2a3e; color: #e0e0e8; min-height: 400px;">
+    <div class="empty-state">
+      <div class="spinner" style="margin: 0 auto;"></div>
+      <div class="empty-state-title mt-4">Loading events...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Load events when page loads
+(async function() {
+  await new Promise(resolve => setTimeout(resolve, 100));
+  if (typeof loadEvents === 'function') {
+    await loadEvents();
+  } else {
+    console.error('loadEvents function not found');
+    const eventsEl = document.getElementById('events');
+    if (eventsEl) {
+      eventsEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon" style="color: #ff0040;">⚠️</div><div class="empty-state-title" style="color: #ff0040;">Error</div><div class="empty-state-description">loadEvents function not available</div></div>';
+    }
+  }
+})();
+</script>
