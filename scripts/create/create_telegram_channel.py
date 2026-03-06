@@ -22,7 +22,7 @@ channel = repo.upsert_chat_channel(
     display_name='Demo1 Telegram Bot',
     meta_json={
         'client_id': client_id,
-        'telegram_bot_token': '8149020202:AAHeyDXCBvrRYnWYq_Z-1Z0IFJDkpc97A20'
+        'telegram_bot_token': '<REDACTED_TELEGRAM_BOT_TOKEN>'
     }
 )
 

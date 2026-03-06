@@ -12,7 +12,7 @@ import urllib.request
 import urllib.error
 
 # Configuration
-BOT_TOKEN = "8149020202:AAHeyDXCBvrRYnWYq_Z-1Z0IFJDkpc97A20"
+BOT_TOKEN = "<REDACTED_TELEGRAM_BOT_TOKEN>"
 # For localhost testing, use ngrok URL: https://abc123.ngrok-free.app/api/v1/telegram/webhook?db=acq.db
 # For production, use your actual domain: https://yourdomain.com/api/v1/telegram/webhook?db=acq.db
 WEBHOOK_URL = "https://yourdomain.com/api/v1/telegram/webhook?db=acq.db"  # UPDATE THIS!

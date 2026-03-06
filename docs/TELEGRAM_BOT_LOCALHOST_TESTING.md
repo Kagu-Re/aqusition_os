@@ -72,7 +72,7 @@ Forwarding  https://abc123.ngrok-free.app -> http://localhost:8001
 Use the ngrok URL to set the webhook:
 
 ```bash
-curl -X POST "https://api.telegram.org/bot8149020202:AAHeyDXCBvrRYnWYq_Z-1Z0IFJDkpc97A20/setWebhook" \
+curl -X POST "https://api.telegram.org/bot<REDACTED_TELEGRAM_BOT_TOKEN>/setWebhook" \
   -H "Content-Type: application/json" \
   -d '{"url": "https://abc123.ngrok-free.app/api/v1/telegram/webhook?db=acq.db"}'
 ```
@@ -84,7 +84,7 @@ curl -X POST "https://api.telegram.org/bot8149020202:AAHeyDXCBvrRYnWYq_Z-1Z0IFJD
 Check if webhook is set correctly:
 
 ```bash
-curl "https://api.telegram.org/bot8149020202:AAHeyDXCBvrRYnWYq_Z-1Z0IFJDkpc97A20/getWebhookInfo"
+curl "https://api.telegram.org/bot<REDACTED_TELEGRAM_BOT_TOKEN>/getWebhookInfo"
 ```
 
 ### Step 6: Test
@@ -117,7 +117,7 @@ You'll get a URL like: `https://your-unique-name.loca.lt`
 ### Step 4: Set Webhook
 
 ```bash
-curl -X POST "https://api.telegram.org/bot8149020202:AAHeyDXCBvrRYnWYq_Z-1Z0IFJDkpc97A20/setWebhook" \
+curl -X POST "https://api.telegram.org/bot<REDACTED_TELEGRAM_BOT_TOKEN>/setWebhook" \
   -H "Content-Type: application/json" \
   -d '{"url": "https://your-unique-name.loca.lt/api/v1/telegram/webhook?db=acq.db"}'
 ```
@@ -236,7 +236,7 @@ ngrok http 8001 --domain=your-static-domain.ngrok-free.app
 
 3. **Check webhook URL:**
    ```bash
-   curl "https://api.telegram.org/bot8149020202:AAHeyDXCBvrRYnWYq_Z-1Z0IFJDkpc97A20/getWebhookInfo"
+   curl "https://api.telegram.org/bot<REDACTED_TELEGRAM_BOT_TOKEN>/getWebhookInfo"
    ```
 
 ### Server Not Responding
@@ -282,7 +282,7 @@ Make sure the `db` parameter in webhook URL matches your database file:
 3. **Set webhook** (only needed once per ngrok session):
    ```bash
    # Use the ngrok URL from step 2
-   curl -X POST "https://api.telegram.org/bot8149020202:AAHeyDXCBvrRYnWYq_Z-1Z0IFJDkpc97A20/setWebhook" \
+   curl -X POST "https://api.telegram.org/bot<REDACTED_TELEGRAM_BOT_TOKEN>/setWebhook" \
      -H "Content-Type: application/json" \
      -d '{"url": "https://YOUR_NGROK_URL/api/v1/telegram/webhook?db=acq.db"}'
    ```
@@ -316,12 +316,12 @@ python -m ae.cli run-public --host 127.0.0.1 --port 8001
 ngrok http 8001
 
 # Set webhook (replace YOUR_NGROK_URL)
-curl -X POST "https://api.telegram.org/bot8149020202:AAHeyDXCBvrRYnWYq_Z-1Z0IFJDkpc97A20/setWebhook" \
+curl -X POST "https://api.telegram.org/bot<REDACTED_TELEGRAM_BOT_TOKEN>/setWebhook" \
   -H "Content-Type: application/json" \
   -d '{"url": "https://YOUR_NGROK_URL/api/v1/telegram/webhook?db=acq.db"}'
 
 # Verify webhook
-curl "https://api.telegram.org/bot8149020202:AAHeyDXCBvrRYnWYq_Z-1Z0IFJDkpc97A20/getWebhookInfo"
+curl "https://api.telegram.org/bot<REDACTED_TELEGRAM_BOT_TOKEN>/getWebhookInfo"
 
 # Test endpoint manually
 curl -X POST "https://YOUR_NGROK_URL/api/v1/telegram/webhook?db=acq.db" \

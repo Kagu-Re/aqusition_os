@@ -19,7 +19,7 @@ try {
             Write-Host "   $webhookUrl" -ForegroundColor White
             Write-Host ""
             Write-Host "To set webhook, run:" -ForegroundColor Cyan
-            Write-Host "   curl -X POST `"https://api.telegram.org/bot8149020202:AAHeyDXCBvrRYnWYq_Z-1Z0IFJDkpc97A20/setWebhook`" \" -ForegroundColor Gray
+            Write-Host "   curl -X POST `"https://api.telegram.org/bot<REDACTED_TELEGRAM_BOT_TOKEN>/setWebhook`" \" -ForegroundColor Gray
             Write-Host "     -H `"Content-Type: application/json`" \" -ForegroundColor Gray
             Write-Host "     -d '{\"url\": \"$webhookUrl\"}'" -ForegroundColor Gray
             Write-Host ""

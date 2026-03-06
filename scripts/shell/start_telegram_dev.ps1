@@ -105,7 +105,7 @@ Write-Host "📋 Next steps:" -ForegroundColor Cyan
 Write-Host '  1. Copy the HTTPS URL from ngrok (e.g., https://abc123.ngrok-free.app)' -ForegroundColor White
 Write-Host "  2. Set webhook using:" -ForegroundColor White
 Write-Host ""
-Write-Host '     curl -X POST "https://api.telegram.org/bot8149020202:AAHeyDXCBvrRYnWYq_Z-1Z0IFJDkpc97A20/setWebhook" \' -ForegroundColor Gray
+Write-Host '     curl -X POST "https://api.telegram.org/bot<REDACTED_TELEGRAM_BOT_TOKEN>/setWebhook" \' -ForegroundColor Gray
 Write-Host '       -H "Content-Type: application/json" \' -ForegroundColor Gray
 Write-Host '       -d ''{"url": "https://YOUR_NGROK_URL/api/v1/telegram/webhook?db=acq.db"}''' -ForegroundColor Gray
 Write-Host ""

@@ -62,7 +62,7 @@
 
 1. **Check webhook is set:**
    ```bash
-   curl "https://api.telegram.org/bot8149020202:AAHeyDXCBvrRYnWYq_Z-1Z0IFJDkpc97A20/getWebhookInfo"
+   curl "https://api.telegram.org/bot<REDACTED_TELEGRAM_BOT_TOKEN>/getWebhookInfo"
    ```
 
 2. **Verify webhook URL:**
@@ -225,10 +225,10 @@ print(msgs)
 ### Check Webhook
 ```bash
 # Get webhook info
-curl "https://api.telegram.org/bot8149020202:AAHeyDXCBvrRYnWYq_Z-1Z0IFJDkpc97A20/getWebhookInfo"
+curl "https://api.telegram.org/bot<REDACTED_TELEGRAM_BOT_TOKEN>/getWebhookInfo"
 
 # Delete webhook (to reset)
-curl -X POST "https://api.telegram.org/bot8149020202:AAHeyDXCBvrRYnWYq_Z-1Z0IFJDkpc97A20/deleteWebhook"
+curl -X POST "https://api.telegram.org/bot<REDACTED_TELEGRAM_BOT_TOKEN>/deleteWebhook"
 ```
 
 ## Getting Help

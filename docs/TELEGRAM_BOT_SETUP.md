@@ -30,7 +30,7 @@ You need to configure Telegram to send updates to your server.
 **Option B: Using curl**
 
 ```bash
-curl -X POST "https://api.telegram.org/bot8149020202:AAHeyDXCBvrRYnWYq_Z-1Z0IFJDkpc97A20/setWebhook" \
+curl -X POST "https://api.telegram.org/bot<REDACTED_TELEGRAM_BOT_TOKEN>/setWebhook" \
   -H "Content-Type: application/json" \
   -d '{"url": "https://yourdomain.com/api/v1/telegram/webhook?db=acq.db"}'
 ```
@@ -42,7 +42,7 @@ curl -X POST "https://api.telegram.org/bot8149020202:AAHeyDXCBvrRYnWYq_Z-1Z0IFJD
 Check if webhook is set correctly:
 
 ```bash
-curl "https://api.telegram.org/bot8149020202:AAHeyDXCBvrRYnWYq_Z-1Z0IFJDkpc97A20/getWebhookInfo"
+curl "https://api.telegram.org/bot<REDACTED_TELEGRAM_BOT_TOKEN>/getWebhookInfo"
 ```
 
 You should see:
@@ -81,7 +81,7 @@ You should see:
 
 1. **Check webhook URL:**
    ```bash
-   curl "https://api.telegram.org/bot8149020202:AAHeyDXCBvrRYnWYq_Z-1Z0IFJDkpc97A20/getWebhookInfo"
+   curl "https://api.telegram.org/bot<REDACTED_TELEGRAM_BOT_TOKEN>/getWebhookInfo"
    ```
 
 2. **Verify HTTPS:**
@@ -150,7 +150,7 @@ channel = repo.upsert_chat_channel(
     display_name="Demo1 Telegram Bot",
     meta_json={
         "client_id": "demo1",
-        "telegram_bot_token": "8149020202:AAHeyDXCBvrRYnWYq_Z-1Z0IFJDkpc97A20"
+        "telegram_bot_token": "<REDACTED_TELEGRAM_BOT_TOKEN>"
     }
 )
 ```
@@ -160,7 +160,7 @@ channel = repo.upsert_chat_channel(
 If you want to use environment variables instead of storing token in database:
 
 ```bash
-export TELEGRAM_BOT_TOKEN="8149020202:AAHeyDXCBvrRYnWYq_Z-1Z0IFJDkpc97A20"
+export TELEGRAM_BOT_TOKEN="<REDACTED_TELEGRAM_BOT_TOKEN>"
 ```
 
 Note: Currently, the token is stored in channel `meta_json`. Environment variable support can be added if needed.

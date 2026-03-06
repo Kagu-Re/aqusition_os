@@ -68,7 +68,7 @@ This will:
 
 ```powershell
 # Replace YOUR_NGROK_URL with the actual URL from get_ngrok_url.ps1
-curl -X POST "https://api.telegram.org/bot8149020202:AAHeyDXCBvrRYnWYq_Z-1Z0IFJDkpc97A20/setWebhook" `
+curl -X POST "https://api.telegram.org/bot<REDACTED_TELEGRAM_BOT_TOKEN>/setWebhook" `
   -H "Content-Type: application/json" `
   -d '{"url": "https://YOUR_NGROK_URL/api/v1/telegram/webhook?db=acq.db"}'
 ```
@@ -146,7 +146,7 @@ ngrok http 8001
 .\get_ngrok_url.ps1
 
 # Set webhook (use URL from above)
-curl -X POST "https://api.telegram.org/bot8149020202:AAHeyDXCBvrRYnWYq_Z-1Z0IFJDkpc97A20/setWebhook" `
+curl -X POST "https://api.telegram.org/bot<REDACTED_TELEGRAM_BOT_TOKEN>/setWebhook" `
   -H "Content-Type: application/json" `
   -d '{"url": "https://YOUR_NGROK_URL/api/v1/telegram/webhook?db=acq.db"}'
 ```
